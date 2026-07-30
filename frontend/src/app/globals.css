@@ -1,0 +1,54 @@
+:root {
+  --color-ink: #172321;
+  --color-text-secondary: #526360;
+  --color-canvas: #f5f7f6;
+  --color-surface: #ffffff;
+  --color-border: #d6dedb;
+  --color-primary: #0f766e;
+  --color-primary-dark: #0a5c56;
+  --color-primary-soft: #e4f1ef;
+  --color-success: #207a4b;
+  --color-success-soft: #e7f5ec;
+  --color-warning: #8a4b08;
+  --color-warning-soft: #fff2d6;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdecea;
+  --shadow-surface: 0 24px 70px rgb(23 35 33 / 8%);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  min-width: 320px;
+  background: var(--color-canvas);
+}
+
+body {
+  min-height: 100vh;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  font-family: var(--font-inter), Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  color: var(--color-surface);
+  background: var(--color-primary);
+}

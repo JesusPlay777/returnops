@@ -1,0 +1,98 @@
+# ReturnOps
+
+ReturnOps is a clean-room, bilingual returns-operations demo. It recreates a
+realistic customer-to-operations workflow using fictional data, without
+copying proprietary code, visual assets, or private information.
+
+This repository is a monorepo containing:
+
+- `frontend/`: Next.js, React, and TypeScript.
+- `backend/`: Django REST Framework and PostgreSQL.
+- `docs/`: architecture and decision records.
+- `compose.yaml`: the complete local development environment.
+
+## Current scope
+
+The initial release intentionally uses a synchronous architecture:
+
+- Next.js frontend
+- Django REST Framework API
+- PostgreSQL persistence
+- Docker Compose for local development
+
+Celery and Redis are not part of the initial scope. They will only be
+introduced if a measured asynchronous workload justifies them.
+
+## Prerequisites
+
+- Docker Desktop with WSL 2 integration
+- Docker Compose
+
+Node.js and Python are optional when using Docker. For host-based checks, use
+Node.js 22+ and Python 3.11+.
+
+## Start the platform
+
+The committed defaults are safe for local development, so the platform can be
+started immediately:
+
+```bash
+docker compose up --build
+```
+
+Optional: copy the environment template before customizing values.
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+Open:
+
+- Web: http://localhost:3000
+- API health: http://localhost:8000/api/health/
+- Django admin: http://localhost:8000/admin/
+
+The backend container applies Django migrations before starting.
+
+## Common commands
+
+```bash
+# Run backend checks and tests
+docker compose exec backend python manage.py check
+docker compose exec backend python manage.py test
+
+# Run frontend quality checks
+docker compose exec frontend npm run lint
+docker compose exec frontend npm run typecheck
+
+# Create a Django administrator
+docker compose exec backend python manage.py createsuperuser
+
+# Stop the platform without deleting data
+docker compose down
+```
+
+To reset only the local PostgreSQL data, explicitly remove the Compose volume:
+
+```bash
+docker compose down --volumes
+```
+
+## Host-based checks
+
+The backend can use SQLite only for isolated checks when PostgreSQL is not
+available:
+
+```bash
+cd backend
+DB_ENGINE=sqlite python manage.py check
+DB_ENGINE=sqlite python manage.py test
+```
+
+The application itself uses PostgreSQL in Docker and in deployed environments.
+
+## Documentation
+
+- [Architecture](docs/architecture.md)
+- [ADR 0001: synchronous core](docs/decisions/0001-synchronous-core.md)
