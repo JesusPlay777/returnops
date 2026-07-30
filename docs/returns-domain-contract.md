@@ -1,6 +1,6 @@
 # ReturnOps v1: domain and visitor-isolation contract
 
-- Status: proposed
+- Status: accepted
 - Date: 2026-07-30
 - Scope: first functional vertical slice
 
