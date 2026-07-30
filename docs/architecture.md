@@ -84,3 +84,6 @@ Visitor session
 
 This slice will establish the real data model and API contract before the
 remaining screens are implemented.
+
+The normative behavior and security boundary for this slice are defined in
+[ReturnOps v1: domain and visitor-isolation contract](returns-domain-contract.md).
