@@ -8,9 +8,11 @@ import {
 
 const item: ReturnItem = {
   id: "AAA-BBB",
+  catalog_item_id: "catalog-item-1",
   sku: "DMO-1",
   product_name: "Demo product",
   quantity: 1,
+  max_quantity: 1,
   unit_price: "20.00",
   line_total: "20.00",
   reason: "DAMAGED",

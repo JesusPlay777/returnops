@@ -51,6 +51,13 @@ the Django session, never from a visitor identifier supplied by the browser.
 The aggregate root. It contains customer-facing fictional details, a display
 reference, the current state, monetary summary, and timestamps.
 
+### DemoOrder and DemoOrderItem
+
+The small server-owned catalog of fictional purchases eligible for the demo.
+Each order is isolated by `VisitorSession`. Customer identity, SKU, product
+name, purchased quantity, and price originate here and are never accepted as
+authoritative browser input.
+
 ### ReturnItem
 
 A fictional product and quantity included in a return. An item belongs to
@@ -71,8 +78,10 @@ actor, time, and optional explanatory note.
 
 ```text
 VisitorSession
+├── DemoOrder
+│   └── DemoOrderItem
 └── ReturnRequest
-    ├── ReturnItem
+    ├── ReturnItem -> DemoOrderItem
     │   └── Evidence
     └── StatusEvent
 ```
@@ -96,6 +105,9 @@ The following invariants are mandatory:
 9. Resource identifiers are opaque UUIDs. Human references such as `RTN-204`
    are display values and are not authorization credentials.
 10. Timestamps are timezone-aware and serialized in ISO 8601 UTC.
+11. A demo order can create at most one active return request.
+12. Customer, product, SKU, unit price, and maximum quantity are copied from
+    the server-owned catalog in the same transaction that creates the draft.
 
 ## 5. Lifecycle
 
@@ -136,12 +148,13 @@ inside `transaction.atomic()`.
 
 ### Mutability
 
-- In `DRAFT`, the customer can edit the request and add, edit, or remove items
-  and evidence.
+- In `DRAFT`, catalog identity and price fields are immutable. The customer can
+  adjust selected quantities up to the purchased amount, reasons, details, and
+  curated evidence.
 - In `SUBMITTED`, the customer view is read-only. Operations can only perform
   one of the documented state transitions; it cannot rewrite customer data.
-- In `NEEDS_INFORMATION`, the customer can update the request, items, and
-  evidence and then resubmit it with a response note.
+- In `NEEDS_INFORMATION`, the customer can update mutable item fields and
+  evidence and then resubmit with a response note.
 - In `APPROVED` and `REJECTED`, the aggregate is read-only through the public
   API.
 - A draft may be deleted. A submitted or terminal return may not be deleted
@@ -189,6 +202,8 @@ Visitor isolation is a server-side invariant, not merely a view filter.
 ### Query rules
 
 - Every return queryset starts from the current active `VisitorSession`.
+- Every demo-order queryset starts from the current active `VisitorSession`
+  and excludes orders already connected to a return.
 - Detail lookups combine the resource UUID with the current visitor scope.
 - Item, evidence, and event lookups traverse their parent and enforce the same
   visitor scope.
@@ -271,6 +286,7 @@ All endpoints use the `/api/v1/` prefix.
 | Method | Path | Behavior |
 | --- | --- | --- |
 | `GET` | `/session/` | Bootstrap or inspect the active visitor sandbox |
+| `GET` | `/demo/orders/` | List unused eligible fictional orders and items |
 | `POST` | `/demo/reset/` | Reset only the active visitor dataset |
 
 ### Customer perspective
@@ -278,12 +294,10 @@ All endpoints use the `/api/v1/` prefix.
 | Method | Path | Behavior |
 | --- | --- | --- |
 | `GET` | `/returns/` | List the current visitor's returns |
-| `POST` | `/returns/` | Create a `DRAFT` |
+| `POST` | `/returns/` | Create a `DRAFT` from catalog IDs and selections |
 | `GET` | `/returns/{return_id}/` | Get the aggregate and timeline |
-| `PATCH` | `/returns/{return_id}/` | Edit customer fields when mutable |
 | `DELETE` | `/returns/{return_id}/` | Delete a draft |
-| `POST` | `/returns/{return_id}/items/` | Add an item |
-| `PATCH` | `/returns/{return_id}/items/{item_id}/` | Edit an item |
+| `PATCH` | `/returns/{return_id}/items/{item_id}/` | Edit quantity, reason, or details |
 | `DELETE` | `/returns/{return_id}/items/{item_id}/` | Remove an item |
 | `POST` | `/returns/{return_id}/items/{item_id}/evidence/` | Attach curated evidence |
 | `DELETE` | `/returns/{return_id}/items/{item_id}/evidence/{evidence_id}/` | Remove evidence |
@@ -312,6 +326,25 @@ Supported operations filters in v1 are `search`, `status`, `ordering`, and
 ## 10. Write payloads
 
 Status is never accepted by generic create or update payloads.
+
+Catalog-backed draft creation:
+
+```json
+{
+  "order_id": "3ce8a3de-d732-49bc-b1c4-1698091cf175",
+  "items": [
+    {
+      "order_item_id": "ca385771-23f5-4da7-b7c7-35c1c5b21ab0",
+      "quantity": 1,
+      "reason": "DAMAGED",
+      "details": "Fictional product damage."
+    }
+  ]
+}
+```
+
+The server ignores no extra fields: attempts to supply customer identity,
+product identity, price, status, or ownership fields are rejected.
 
 Customer submission:
 

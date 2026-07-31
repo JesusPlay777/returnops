@@ -6,6 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from returns.models import (
+    DemoOrder,
     ReturnRequest,
     ReturnStatus,
     VisitorSession,
@@ -28,6 +29,8 @@ class DemoDatasetServiceTests(TestCase):
 
         summary = seed_demo_dataset(visitor)
 
+        self.assertEqual(summary.order_count, 3)
+        self.assertEqual(summary.order_item_count, 6)
         self.assertEqual(summary.return_count, 14)
         self.assertEqual(summary.item_count, 22)
         self.assertEqual(summary.evidence_count, 25)
@@ -59,6 +62,14 @@ class DemoDatasetServiceTests(TestCase):
         self.assertTrue(
             featured.items.filter(evidence__isnull=False).exists(),
         )
+        self.assertEqual(
+            set(
+                DemoOrder.objects.filter(
+                    visitor_session=visitor,
+                ).values_list("order_reference", flat=True)
+            ),
+            {"ORD-90001", "ORD-90002", "ORD-90003"},
+        )
 
     def test_seed_is_idempotent(self):
         visitor = self.create_visitor()
@@ -75,6 +86,7 @@ class DemoDatasetServiceTests(TestCase):
         self.assertEqual(first_summary, second_summary)
         self.assertEqual(first_ids, second_ids)
         self.assertEqual(len(second_ids), 14)
+        self.assertEqual(visitor.demo_orders.count(), 3)
 
     def test_visitors_receive_independent_datasets(self):
         first_visitor = self.create_visitor()

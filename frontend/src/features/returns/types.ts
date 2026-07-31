@@ -29,9 +29,11 @@ export type Evidence = {
 
 export type ReturnItem = {
   id: string;
+  catalog_item_id: string | null;
   sku: string;
   product_name: string;
   quantity: number;
+  max_quantity: number;
   unit_price: string;
   line_total: string;
   reason: ReturnReason;
@@ -76,24 +78,42 @@ export type PaginatedReturns = {
   results: ReturnRequestSummary[];
 };
 
-export type ReturnRequestInput = {
-  order_reference: string;
-  customer_name: string;
-  customer_email: string;
-};
-
-export type ReturnRequestUpdate = Partial<ReturnRequestInput>;
-
-export type ReturnItemInput = {
+export type DemoOrderItem = {
+  id: string;
   sku: string;
   product_name: string;
   quantity: number;
   unit_price: string;
+  line_total: string;
+};
+
+export type DemoOrder = {
+  id: string;
+  order_reference: string;
+  customer_name: string;
+  customer_email: string;
+  currency: string;
+  placed_at: string;
+  items: DemoOrderItem[];
+};
+
+export type CatalogReturnItemSelection = {
+  order_item_id: string;
+  quantity: number;
   reason: ReturnReason;
   details?: string;
 };
 
-export type ReturnItemUpdate = Partial<ReturnItemInput>;
+export type CatalogReturnCreateInput = {
+  order_id: string;
+  items: CatalogReturnItemSelection[];
+};
+
+export type ReturnItemUpdate = {
+  quantity?: number;
+  reason?: ReturnReason;
+  details?: string;
+};
 
 export type EvidenceInput = {
   kind: EvidenceKind;

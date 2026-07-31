@@ -1,16 +1,17 @@
+import uuid
+
 from django.test import TestCase
 
 from returns.api.serializers import (
+    CatalogReturnCreateSerializer,
     EvidenceWriteSerializer,
     OperationsQueueQuerySerializer,
     OperationsTransitionSerializer,
-    ReturnItemWriteSerializer,
+    ReturnItemUpdateSerializer,
     ReturnRequestDetailSerializer,
     ReturnRequestSummarySerializer,
-    ReturnRequestWriteSerializer,
     SubmitReturnSerializer,
 )
-from returns.models import ReturnStatus
 from returns.selectors import (
     customer_return_detail,
     operations_return_list,
@@ -56,16 +57,20 @@ class ReturnAPISerializerTests(TestCase):
         self.assertGreaterEqual(len(data["items"][0]["evidence"]), 1)
         self.assertEqual(len(data["status_events"]), 2)
 
-    def test_request_write_rejects_server_controlled_fields(self):
-        serializer = ReturnRequestWriteSerializer(
+    def test_catalog_return_rejects_server_controlled_fields(self):
+        serializer = CatalogReturnCreateSerializer(
             data={
+                "order_id": str(uuid.uuid4()),
+                "items": [
+                    {
+                        "order_item_id": str(uuid.uuid4()),
+                        "quantity": 1,
+                        "reason": "DAMAGED",
+                    }
+                ],
                 "order_reference": "ORD-90001",
                 "customer_name": "Taylor Example",
                 "customer_email": "taylor@example.com",
-                "status": ReturnStatus.APPROVED,
-                "reference": "RTN-999",
-                "visitor_session": str(self.visitor.id),
-                "currency": "EUR",
             }
         )
 
@@ -73,10 +78,9 @@ class ReturnAPISerializerTests(TestCase):
         self.assertEqual(
             set(serializer.errors),
             {
-                "status",
-                "reference",
-                "visitor_session",
-                "currency",
+                "order_reference",
+                "customer_name",
+                "customer_email",
             },
         )
         self.assertTrue(
@@ -86,36 +90,41 @@ class ReturnAPISerializerTests(TestCase):
             )
         )
 
-    def test_valid_request_write_normalizes_text(self):
-        serializer = ReturnRequestWriteSerializer(
+    def test_valid_catalog_selection_normalizes_details(self):
+        order_id = uuid.uuid4()
+        order_item_id = uuid.uuid4()
+        serializer = CatalogReturnCreateSerializer(
             data={
-                "order_reference": "  ORD-90001 ",
-                "customer_name": "  Taylor Example ",
-                "customer_email": " TAYLOR@example.com ",
+                "order_id": str(order_id),
+                "items": [
+                    {
+                        "order_item_id": str(order_item_id),
+                        "quantity": 1,
+                        "reason": "DAMAGED",
+                        "details": "  Fictional damage.  ",
+                    }
+                ],
             }
         )
 
         self.assertTrue(serializer.is_valid(), serializer.errors)
+        self.assertEqual(serializer.validated_data["order_id"], order_id)
         self.assertEqual(
-            serializer.validated_data["order_reference"],
-            "ORD-90001",
+            serializer.validated_data["items"][0]["order_item_id"],
+            order_item_id,
         )
         self.assertEqual(
-            serializer.validated_data["customer_name"],
-            "Taylor Example",
-        )
-        self.assertEqual(
-            serializer.validated_data["customer_email"],
-            "TAYLOR@example.com",
+            serializer.validated_data["items"][0]["details"],
+            "Fictional damage.",
         )
 
-    def test_item_write_enforces_quantity_price_and_ownership_boundary(self):
-        serializer = ReturnItemWriteSerializer(
+    def test_item_update_rejects_server_owned_product_fields(self):
+        serializer = ReturnItemUpdateSerializer(
             data={
                 "sku": "DMO-TEST",
                 "product_name": "Fictional item",
-                "quantity": 0,
-                "unit_price": "-1.00",
+                "quantity": 1,
+                "unit_price": "1.00",
                 "reason": "DAMAGED",
                 "details": "",
                 "return_request": "untrusted-parent",
@@ -125,23 +134,20 @@ class ReturnAPISerializerTests(TestCase):
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             set(serializer.errors),
-            {"return_request"},
+            {"sku", "product_name", "unit_price", "return_request"},
         )
 
-        serializer = ReturnItemWriteSerializer(
+        serializer = ReturnItemUpdateSerializer(
             data={
-                "sku": "DMO-TEST",
-                "product_name": "Fictional item",
                 "quantity": 0,
-                "unit_price": "-1.00",
-                "reason": "DAMAGED",
+                "reason": "NOT_REAL",
                 "details": "",
             }
         )
         self.assertFalse(serializer.is_valid())
         self.assertEqual(
             set(serializer.errors),
-            {"quantity", "unit_price"},
+            {"quantity", "reason"},
         )
 
     def test_evidence_write_rejects_parent_and_invalid_asset_key(self):

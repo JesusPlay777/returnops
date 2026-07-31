@@ -53,9 +53,10 @@ session UUID itself must never appear in an API path, query, header, or body.
 | Perspective | Method and path | Purpose |
 | --- | --- | --- |
 | Public | `GET /api/v1/session/` | Bootstrap or resume the demo sandbox |
+| Demo | `GET /api/v1/demo/orders/` | List unused eligible fictional orders |
 | Demo | `POST /api/v1/demo/reset/` | Reset only the current visitor data |
-| Customer | `GET, POST /api/v1/returns/` | List returns or create a draft |
-| Customer | `GET, PATCH, DELETE /api/v1/returns/{id}/` | Read, edit, or delete a draft |
+| Customer | `GET, POST /api/v1/returns/` | List returns or create from catalog selections |
+| Customer | `GET, DELETE /api/v1/returns/{id}/` | Read or delete a draft |
 | Customer | `POST /api/v1/returns/{id}/submit/` | Submit or resubmit a return |
 | Customer | Nested item and evidence routes | Maintain a mutable aggregate |
 | Operations | `GET /api/v1/operations/returns/` | Search and filter the queue |
@@ -74,7 +75,7 @@ Handled failures use one stable shape:
   "code": "validation_error",
   "detail": "Request validation failed.",
   "fields": {
-    "customer_email": ["Enter a valid email address."]
+    "items": ["This list may not be empty."]
   }
 }
 ```

@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from returns.api.views import (
     CustomerReturnViewSet,
+    DemoOrderListView,
     DemoResetView,
     OperationsReturnViewSet,
     SessionView,
@@ -25,6 +26,7 @@ router.register(
 
 urlpatterns = [
     path("session/", SessionView.as_view(), name="session"),
+    path("demo/orders/", DemoOrderListView.as_view(), name="demo-orders"),
     path("demo/reset/", DemoResetView.as_view(), name="demo-reset"),
     path("", include(router.urls)),
 ]

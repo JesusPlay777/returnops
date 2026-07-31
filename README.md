@@ -57,11 +57,12 @@ Open:
 
 The backend container applies Django migrations before starting.
 
-The customer screen uses the real visitor-isolated API. It supports paginated
-listing, request detail, draft creation, and editing of mutable requests in
-English and Spanish. Its responsive three-step workflow manages items,
-attaches curated fictional evidence, reviews totals, and submits or resubmits
-the request to operations.
+The customer screen uses the real visitor-isolated API. Drafts begin from a
+small catalog of eligible fictional orders rather than free-form customer or
+product input. Django owns customer identity, SKU, purchased quantity, and
+price; the browser selects items, return quantities, reasons, and optional
+details. The responsive workflow then manages curated evidence, review, and
+submission or resubmission in English and Spanish.
 
 The same screen can switch to the operations role. Its responsive queue uses
 the real operations API to search, filter, order, and paginate non-draft

@@ -10,16 +10,18 @@ import {
 
 import {
   createCustomerReturn,
+  listEligibleDemoOrders,
   listCustomerReturns,
   retrieveCustomerReturn,
-  updateCustomerReturn,
 } from "@/features/returns/api";
 import CustomerReturnWorkflow from "@/features/returns/components/customer-return-workflow";
 import OperationsQueue from "@/features/returns/components/operations-queue";
 import type {
+  CatalogReturnCreateInput,
+  DemoOrder,
   PaginatedReturns,
+  ReturnReason,
   ReturnRequestDetail,
-  ReturnRequestInput,
   ReturnStatus,
 } from "@/features/returns/types";
 import { ApiError, toApiError } from "@/lib/api/client";
@@ -40,7 +42,6 @@ type DetailState =
   | { status: "error"; error: ApiError };
 type EditorState =
   | { mode: "create" }
-  | { mode: "edit"; data: ReturnRequestDetail }
   | null;
 
 const PAGE_SIZE = 5;
@@ -90,17 +91,24 @@ const copy = {
     timeline: "Activity",
     noNote: "Status updated",
     createTitle: "Start a fictional return",
-    editTitle: "Edit return details",
+    orderSearch: "Find a fictional demo order",
+    orderSearchPlaceholder: "Try ORD-90001",
+    availableOrders: "Available demo orders",
+    noOrderMatch: "No eligible fictional order matches that reference.",
+    noOrders: "All demo orders are currently in use. Reset the demo to restore them.",
+    orderCustomer: "Fictional customer",
+    selectItems: "Select at least one item to return",
+    purchased: (count: number) => `Purchased: ${count}`,
+    quantity: "Return quantity",
+    reason: "Reason",
+    details: "Optional details",
+    itemRequired: "Select at least one eligible item.",
+    loadingOrders: "Loading eligible demo orders…",
     formIntro:
-      "Use fictional information only. You can add products and evidence in the next step.",
-    orderReference: "Order reference",
-    name: "Customer name",
-    customerEmail: "Customer email",
+      "Choose a server-owned fictional order. Customer, product, quantity, and price data cannot be invented.",
     cancel: "Cancel",
     creating: "Creating…",
-    saving: "Saving…",
-    createDraft: "Create draft",
-    saveChanges: "Save changes",
+    createDraft: "Continue with selected items",
     formError: "We could not save these details.",
     draftCreated: "Draft created",
     detailsSaved: "Details saved",
@@ -152,17 +160,24 @@ const copy = {
     timeline: "Actividad",
     noNote: "Estado actualizado",
     createTitle: "Iniciar devolución ficticia",
-    editTitle: "Editar datos de la devolución",
+    orderSearch: "Busca un pedido ficticio de demostración",
+    orderSearchPlaceholder: "Prueba ORD-90001",
+    availableOrders: "Pedidos demo disponibles",
+    noOrderMatch: "Ningún pedido ficticio elegible coincide con esa referencia.",
+    noOrders: "Todos los pedidos demo están en uso. Restablece la demo para recuperarlos.",
+    orderCustomer: "Cliente ficticio",
+    selectItems: "Selecciona al menos un artículo para devolver",
+    purchased: (count: number) => `Comprados: ${count}`,
+    quantity: "Cantidad a devolver",
+    reason: "Motivo",
+    details: "Detalles opcionales",
+    itemRequired: "Selecciona al menos un artículo elegible.",
+    loadingOrders: "Cargando pedidos demo elegibles…",
     formIntro:
-      "Usa solo información ficticia. Podrás agregar productos y evidencias en el siguiente paso.",
-    orderReference: "Referencia del pedido",
-    name: "Nombre del cliente",
-    customerEmail: "Correo del cliente",
+      "Elige un pedido ficticio controlado por el servidor. No se pueden inventar clientes, productos, cantidades ni precios.",
     cancel: "Cancelar",
     creating: "Creando…",
-    saving: "Guardando…",
-    createDraft: "Crear borrador",
-    saveChanges: "Guardar cambios",
+    createDraft: "Continuar con los artículos",
     formError: "No pudimos guardar estos datos.",
     draftCreated: "Borrador creado",
     detailsSaved: "Datos actualizados",
@@ -283,17 +298,11 @@ export default function CustomerReturnsScreen() {
   }, []);
 
   const handleSaved = useCallback(
-    (
-      data: ReturnRequestDetail,
-      message: string,
-      mode: "create" | "edit",
-    ) => {
+    (data: ReturnRequestDetail, message: string) => {
       setEditor(null);
       setDetailState({ status: "ready", data });
       setNotice(message);
-      if (mode === "create") {
-        setWorkflowReturn(data);
-      }
+      setWorkflowReturn(data);
       setListState({ status: "loading" });
       if (page !== 1) {
         setPage(1);
@@ -543,7 +552,6 @@ export default function CustomerReturnsScreen() {
             locale={locale}
             onClose={() => setDetailState({ status: "idle" })}
             onContinue={setWorkflowReturn}
-            onEdit={(data) => setEditor({ mode: "edit", data })}
             onRetry={
               detailState.status === "loading"
                 ? () => openDetail(detailState.returnId)
@@ -561,7 +569,6 @@ export default function CustomerReturnsScreen() {
 
       {editor && (
         <ReturnEditor
-          editor={editor}
           locale={locale}
           onCancel={() => setEditor(null)}
           onSaved={handleSaved}
@@ -634,13 +641,11 @@ function ReturnDetail({
   locale,
   onClose,
   onContinue,
-  onEdit,
   state,
 }: {
   locale: Locale;
   onClose: () => void;
   onContinue: (data: ReturnRequestDetail) => void;
-  onEdit: (data: ReturnRequestDetail) => void;
   onRetry?: () => void;
   state: DetailState;
 }) {
@@ -688,12 +693,9 @@ function ReturnDetail({
         </div>
         <div className={styles.detailActions}>
           {editable && (
-            <>
-              <button onClick={() => onEdit(data)} type="button">{t.edit}</button>
-              <button onClick={() => onContinue(data)} type="button">
-                {t.continueReturn}
-              </button>
-            </>
+            <button onClick={() => onContinue(data)} type="button">
+              {t.continueReturn}
+            </button>
           )}
           <button className={styles.iconButton} onClick={onClose} type="button" aria-label={t.close}>×</button>
         </div>
@@ -746,59 +748,159 @@ function ReturnDetail({
   );
 }
 
+const catalogReasonLabels: Record<Locale, Record<ReturnReason, string>> = {
+  en: {
+    DAMAGED: "Damaged",
+    WRONG_ITEM: "Wrong item",
+    NOT_AS_DESCRIBED: "Not as described",
+    NO_LONGER_NEEDED: "No longer needed",
+    OTHER: "Other",
+  },
+  es: {
+    DAMAGED: "Dañado",
+    WRONG_ITEM: "Artículo equivocado",
+    NOT_AS_DESCRIBED: "No coincide con la descripción",
+    NO_LONGER_NEEDED: "Ya no lo necesito",
+    OTHER: "Otro",
+  },
+};
+
+type CatalogItemSelectionState = Record<
+  string,
+  {
+    selected: boolean;
+    quantity: number;
+    reason: ReturnReason;
+    details: string;
+  }
+>;
+
 function ReturnEditor({
-  editor,
   locale,
   onCancel,
   onSaved,
 }: {
-  editor: Exclude<EditorState, null>;
   locale: Locale;
   onCancel: () => void;
-  onSaved: (
-    data: ReturnRequestDetail,
-    message: string,
-    mode: "create" | "edit",
-  ) => void;
+  onSaved: (data: ReturnRequestDetail, message: string) => void;
 }) {
   const t = copy[locale];
-  const initialData: ReturnRequestInput =
-    editor.mode === "edit"
-      ? {
-          order_reference: editor.data.order_reference,
-          customer_name: editor.data.customer_name,
-          customer_email: editor.data.customer_email,
-        }
-      : { order_reference: "", customer_name: "", customer_email: "" };
-  const [form, setForm] = useState(initialData);
+  const [orders, setOrders] = useState<DemoOrder[] | null>(null);
+  const [loadError, setLoadError] = useState<ApiError | null>(null);
+  const [query, setQuery] = useState("");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selections, setSelections] = useState<CatalogItemSelectionState>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
 
+  const loadOrders = useCallback(() => {
+    setOrders(null);
+    setLoadError(null);
+    listEligibleDemoOrders()
+      .then(setOrders)
+      .catch((loadFailure: unknown) => {
+        setLoadError(toApiError(loadFailure));
+      });
+  }, []);
+
+  useEffect(() => {
+    let current = true;
+    listEligibleDemoOrders()
+      .then((availableOrders) => {
+        if (current) setOrders(availableOrders);
+      })
+      .catch((loadFailure: unknown) => {
+        if (current) setLoadError(toApiError(loadFailure));
+      });
+    return () => {
+      current = false;
+    };
+  }, []);
+
   useEffect(() => {
     function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !saving) {
-        onCancel();
-      }
+      if (event.key === "Escape" && !saving) onCancel();
     }
-
     document.addEventListener("keydown", closeOnEscape);
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [onCancel, saving]);
 
+  const visibleOrders = useMemo(() => {
+    const normalized = query.trim().toLocaleUpperCase();
+    if (!orders || !normalized) return orders ?? [];
+    return orders.filter((order) =>
+      order.order_reference.toLocaleUpperCase().includes(normalized),
+    );
+  }, [orders, query]);
+
+  const selectedOrder = useMemo(
+    () => orders?.find((order) => order.id === selectedOrderId) ?? null,
+    [orders, selectedOrderId],
+  );
+
+  const selectedCount = Object.values(selections).filter(
+    (selection) => selection.selected,
+  ).length;
+
+  function chooseOrder(order: DemoOrder) {
+    setSelectedOrderId(order.id);
+    setQuery(order.order_reference);
+    setError(null);
+    setSelections(
+      Object.fromEntries(
+        order.items.map((item) => [
+          item.id,
+          {
+            selected: false,
+            quantity: 1,
+            reason: "DAMAGED" as ReturnReason,
+            details: "",
+          },
+        ]),
+      ),
+    );
+  }
+
+  function updateSelection(
+    itemId: string,
+    next: Partial<CatalogItemSelectionState[string]>,
+  ) {
+    setSelections((current) => ({
+      ...current,
+      [itemId]: { ...current[itemId], ...next },
+    }));
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!selectedOrder || selectedCount === 0) {
+      setError(
+        new ApiError({
+          status: 400,
+          code: "return_items_required",
+          detail: t.itemRequired,
+        }),
+      );
+      return;
+    }
+
+    const input: CatalogReturnCreateInput = {
+      order_id: selectedOrder.id,
+      items: selectedOrder.items
+        .filter((item) => selections[item.id]?.selected)
+        .map((item) => ({
+          order_item_id: item.id,
+          quantity: selections[item.id].quantity,
+          reason: selections[item.id].reason,
+          details: selections[item.id].details,
+        })),
+    };
+
     setSaving(true);
     setError(null);
     try {
-      const data =
-        editor.mode === "create"
-          ? await createCustomerReturn(form)
-          : await updateCustomerReturn(editor.data.id, form);
-      onSaved(
-        data,
-        editor.mode === "create" ? t.draftCreated : t.detailsSaved,
-        editor.mode,
-      );
+      const data = await createCustomerReturn(input);
+      onSaved(data, t.draftCreated);
     } catch (saveError) {
       setError(toApiError(saveError));
       setSaving(false);
@@ -810,54 +912,134 @@ function ReturnEditor({
       <section
         aria-labelledby="return-editor-title"
         aria-modal="true"
-        className={styles.modal}
+        className={`${styles.modal} ${styles.catalogModal}`}
         onMouseDown={(event) => event.stopPropagation()}
         role="dialog"
       >
         <div className={styles.modalHeader}>
           <div>
             <p className={styles.eyebrow}>{t.customer}</p>
-            <h2 id="return-editor-title">
-              {editor.mode === "create" ? t.createTitle : t.editTitle}
-            </h2>
+            <h2 id="return-editor-title">{t.createTitle}</h2>
             <p>{t.formIntro}</p>
           </div>
           <button className={styles.iconButton} onClick={onCancel} type="button" aria-label={t.close}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <label>
-            <span>{t.orderReference}</span>
+          <label className={styles.catalogSearch}>
+            <span>{t.orderSearch}</span>
             <input
               autoFocus
               maxLength={40}
-              onChange={(event) => setForm({ ...form, order_reference: event.target.value })}
-              placeholder="ORD-90001"
-              required
-              value={form.order_reference}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder={t.orderSearchPlaceholder}
+              value={query}
             />
           </label>
-          <label>
-            <span>{t.name}</span>
-            <input
-              maxLength={120}
-              onChange={(event) => setForm({ ...form, customer_name: event.target.value })}
-              placeholder="Taylor Example"
-              required
-              value={form.customer_name}
-            />
-          </label>
-          <label>
-            <span>{t.customerEmail}</span>
-            <input
-              maxLength={254}
-              onChange={(event) => setForm({ ...form, customer_email: event.target.value })}
-              placeholder="taylor@example.com"
-              required
-              type="email"
-              value={form.customer_email}
-            />
-          </label>
+
+          {orders === null && !loadError && (
+            <div className={styles.catalogMessage} role="status">
+              <span className={styles.spinner} aria-hidden="true" />
+              {t.loadingOrders}
+            </div>
+          )}
+
+          {loadError && (
+            <div className={styles.formError} role="alert">
+              <strong>{t.formError}</strong>
+              <span>{errorDetail(loadError, t.formError)}</span>
+              <button onClick={loadOrders} type="button">{t.retry}</button>
+            </div>
+          )}
+
+          {orders && orders.length === 0 && (
+            <div className={styles.catalogMessage}>{t.noOrders}</div>
+          )}
+
+          {orders && orders.length > 0 && !selectedOrder && (
+            <section className={styles.orderResults} aria-label={t.availableOrders}>
+              <strong>{t.availableOrders}</strong>
+              {visibleOrders.length === 0 && (
+                <p className={styles.catalogMessage}>{t.noOrderMatch}</p>
+              )}
+              {visibleOrders.map((order) => (
+                <button key={order.id} onClick={() => chooseOrder(order)} type="button">
+                  <span><b>{order.order_reference}</b><small>{order.customer_name}</small></span>
+                  <span><b>{order.items.length}</b><small>{t.items}</small></span>
+                  <span>→</span>
+                </button>
+              ))}
+            </section>
+          )}
+
+          {selectedOrder && (
+            <>
+              <section className={styles.selectedOrder}>
+                <div>
+                  <small>{t.orderCustomer}</small>
+                  <strong>{selectedOrder.customer_name}</strong>
+                  <span>{selectedOrder.customer_email}</span>
+                </div>
+                <button onClick={() => { setSelectedOrderId(null); setSelections({}); }} type="button">
+                  {t.orderSearch}
+                </button>
+              </section>
+
+              <section className={styles.catalogItems} aria-label={t.selectItems}>
+                <h3>{t.selectItems}</h3>
+                {selectedOrder.items.map((item) => {
+                  const selection = selections[item.id];
+                  return (
+                    <article data-selected={selection?.selected} key={item.id}>
+                      <label className={styles.catalogItemHeader}>
+                        <input
+                          checked={selection?.selected ?? false}
+                          onChange={(event) => updateSelection(item.id, { selected: event.target.checked })}
+                          type="checkbox"
+                        />
+                        <span><b>{item.product_name}</b><small>{item.sku} · {t.purchased(item.quantity)}</small></span>
+                        <strong>{formatMoney(item.unit_price, selectedOrder.currency, locale)}</strong>
+                      </label>
+                      {selection?.selected && (
+                        <div className={styles.catalogItemFields}>
+                          <label>
+                            <span>{t.quantity}</span>
+                            <input
+                              max={item.quantity}
+                              min="1"
+                              onChange={(event) => updateSelection(item.id, { quantity: Number(event.target.value) })}
+                              required
+                              type="number"
+                              value={selection.quantity}
+                            />
+                          </label>
+                          <label>
+                            <span>{t.reason}</span>
+                            <select
+                              onChange={(event) => updateSelection(item.id, { reason: event.target.value as ReturnReason })}
+                              value={selection.reason}
+                            >
+                              {(Object.keys(catalogReasonLabels[locale]) as ReturnReason[]).map((reason) => (
+                                <option key={reason} value={reason}>{catalogReasonLabels[locale][reason]}</option>
+                              ))}
+                            </select>
+                          </label>
+                          <label className={styles.catalogDetails}>
+                            <span>{t.details}</span>
+                            <input
+                              maxLength={2000}
+                              onChange={(event) => updateSelection(item.id, { details: event.target.value })}
+                              value={selection.details}
+                            />
+                          </label>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })}
+              </section>
+            </>
+          )}
 
           {error && (
             <div className={styles.formError} role="alert">
@@ -868,10 +1050,12 @@ function ReturnEditor({
 
           <div className={styles.formActions}>
             <button disabled={saving} onClick={onCancel} type="button">{t.cancel}</button>
-            <button className={styles.primaryButton} disabled={saving} type="submit">
-              {saving
-                ? editor.mode === "create" ? t.creating : t.saving
-                : editor.mode === "create" ? t.createDraft : t.saveChanges}
+            <button
+              className={styles.primaryButton}
+              disabled={saving || !selectedOrder || selectedCount === 0}
+              type="submit"
+            >
+              {saving ? t.creating : t.createDraft}
             </button>
           </div>
         </form>

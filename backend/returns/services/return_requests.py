@@ -6,11 +6,9 @@ from django.utils import timezone
 
 from returns.models import (
     Evidence,
-    EventActor,
     ReturnItem,
     ReturnRequest,
     ReturnStatus,
-    StatusEvent,
     VisitorSession,
 )
 from returns.services.transitions import ReturnRequestNotFound
@@ -31,6 +29,10 @@ class EvidenceNotFound(LookupError):
 
 class EvidenceAlreadyAttached(Exception):
     code = "evidence_already_attached"
+
+
+class ReturnItemQuantityExceeded(Exception):
+    code = "return_item_quantity_exceeded"
 
 
 def _lock_active_visitor(visitor_id: UUID) -> VisitorSession:
@@ -110,61 +112,6 @@ def _get_evidence(
         raise EvidenceNotFound from error
 
 
-def _next_reference(visitor: VisitorSession) -> str:
-    highest_number = 0
-    references = ReturnRequest.objects.filter(
-        visitor_session=visitor,
-    ).values_list("reference", flat=True)
-    for reference in references:
-        try:
-            highest_number = max(
-                highest_number,
-                int(reference.removeprefix("RTN-")),
-            )
-        except ValueError:
-            continue
-    return f"RTN-{highest_number + 1:03d}"
-
-
-@transaction.atomic
-def create_draft_return(
-    visitor_session: VisitorSession,
-    *,
-    data: dict,
-) -> ReturnRequest:
-    visitor = _lock_active_visitor(visitor_session.id)
-    return_request = ReturnRequest.objects.create(
-        visitor_session=visitor,
-        reference=_next_reference(visitor),
-        status=ReturnStatus.DRAFT,
-        **data,
-    )
-    StatusEvent.objects.create(
-        return_request=return_request,
-        from_status=None,
-        to_status=ReturnStatus.DRAFT,
-        actor=EventActor.SYSTEM,
-    )
-    return return_request
-
-
-@transaction.atomic
-def update_return_request(
-    visitor_session: VisitorSession,
-    return_id: UUID | str,
-    *,
-    data: dict,
-) -> ReturnRequest:
-    visitor = _lock_active_visitor(visitor_session.id)
-    return_request = _lock_mutable_return(visitor, return_id)
-    for field, value in data.items():
-        setattr(return_request, field, value)
-    return_request.save(
-        update_fields=(*data.keys(), "updated_at"),
-    )
-    return return_request
-
-
 @transaction.atomic
 def delete_draft_return(
     visitor_session: VisitorSession,
@@ -178,21 +125,6 @@ def delete_draft_return(
 
 
 @transaction.atomic
-def add_return_item(
-    visitor_session: VisitorSession,
-    return_id: UUID | str,
-    *,
-    data: dict,
-) -> ReturnItem:
-    visitor = _lock_active_visitor(visitor_session.id)
-    return_request = _lock_mutable_return(visitor, return_id)
-    return ReturnItem.objects.create(
-        return_request=return_request,
-        **data,
-    )
-
-
-@transaction.atomic
 def update_return_item(
     visitor_session: VisitorSession,
     return_id: UUID | str,
@@ -203,6 +135,12 @@ def update_return_item(
     visitor = _lock_active_visitor(visitor_session.id)
     return_request = _lock_mutable_return(visitor, return_id)
     return_item = _get_item(return_request, item_id)
+    if (
+        "quantity" in data
+        and return_item.demo_order_item_id
+        and data["quantity"] > return_item.demo_order_item.quantity
+    ):
+        raise ReturnItemQuantityExceeded
     for field, value in data.items():
         setattr(return_item, field, value)
     return_item.save(update_fields=(*data.keys(), "updated_at"))

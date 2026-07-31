@@ -1,7 +1,9 @@
 import { apiClient, type ApiClient } from "@/lib/api/client";
 
 import type {
+  CatalogReturnCreateInput,
   CustomerReturnsQuery,
+  DemoOrder,
   DemoResetResponse,
   Evidence,
   EvidenceInput,
@@ -9,11 +11,8 @@ import type {
   OperationsStatusCounts,
   PaginatedReturns,
   ReturnItem,
-  ReturnItemInput,
   ReturnItemUpdate,
   ReturnRequestDetail,
-  ReturnRequestInput,
-  ReturnRequestUpdate,
 } from "@/features/returns/types";
 
 type ReturnsClient = Pick<ApiClient, "request">;
@@ -63,19 +62,15 @@ export function createCustomerReturnsApi(client: ReturnsClient) {
     return client.request<ReturnRequestDetail>(returnPath(returnId));
   }
 
-  function create(input: ReturnRequestInput): Promise<ReturnRequestDetail> {
-    return client.request<ReturnRequestDetail>("/api/v1/returns/", {
-      method: "POST",
-      json: input,
-    });
+  function listEligibleOrders(): Promise<DemoOrder[]> {
+    return client.request<DemoOrder[]>("/api/v1/demo/orders/");
   }
 
-  function update(
-    returnId: string,
-    input: ReturnRequestUpdate,
+  function create(
+    input: CatalogReturnCreateInput,
   ): Promise<ReturnRequestDetail> {
-    return client.request<ReturnRequestDetail>(returnPath(returnId), {
-      method: "PATCH",
+    return client.request<ReturnRequestDetail>("/api/v1/returns/", {
+      method: "POST",
       json: input,
     });
   }
@@ -97,16 +92,6 @@ export function createCustomerReturnsApi(client: ReturnsClient) {
         json: { response_note: responseNote },
       },
     );
-  }
-
-  function addItem(
-    returnId: string,
-    input: ReturnItemInput,
-  ): Promise<ReturnItem> {
-    return client.request<ReturnItem>(`${returnPath(returnId)}items/`, {
-      method: "POST",
-      json: input,
-    });
   }
 
   function updateItem(
@@ -150,12 +135,11 @@ export function createCustomerReturnsApi(client: ReturnsClient) {
 
   return {
     list,
+    listEligibleOrders,
     retrieve,
     create,
-    update,
     remove,
     submit,
-    addItem,
     updateItem,
     removeItem,
     addEvidence,
@@ -241,12 +225,11 @@ export function createOperationsReturnsApi(client: ReturnsClient) {
 const operationsReturnsApi = createOperationsReturnsApi(apiClient);
 
 export const listCustomerReturns = customerReturnsApi.list;
+export const listEligibleDemoOrders = customerReturnsApi.listEligibleOrders;
 export const retrieveCustomerReturn = customerReturnsApi.retrieve;
 export const createCustomerReturn = customerReturnsApi.create;
-export const updateCustomerReturn = customerReturnsApi.update;
 export const deleteCustomerDraft = customerReturnsApi.remove;
 export const submitCustomerReturn = customerReturnsApi.submit;
-export const addCustomerReturnItem = customerReturnsApi.addItem;
 export const updateCustomerReturnItem = customerReturnsApi.updateItem;
 export const deleteCustomerReturnItem = customerReturnsApi.removeItem;
 export const addCustomerReturnEvidence = customerReturnsApi.addEvidence;

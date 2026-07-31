@@ -1,9 +1,9 @@
-from decimal import Decimal
-
 from rest_framework import serializers
 from rest_framework.exceptions import ErrorDetail
 
 from returns.models import (
+    DemoOrder,
+    DemoOrderItem,
     Evidence,
     EvidenceKind,
     ReturnItem,
@@ -50,8 +50,50 @@ class EvidenceSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class DemoOrderItemSerializer(serializers.ModelSerializer):
+    line_total = serializers.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+        read_only=True,
+    )
+
+    class Meta:
+        model = DemoOrderItem
+        fields = (
+            "id",
+            "sku",
+            "product_name",
+            "quantity",
+            "unit_price",
+            "line_total",
+        )
+        read_only_fields = fields
+
+class DemoOrderSerializer(serializers.ModelSerializer):
+    items = DemoOrderItemSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = DemoOrder
+        fields = (
+            "id",
+            "order_reference",
+            "customer_name",
+            "customer_email",
+            "currency",
+            "placed_at",
+            "items",
+        )
+        read_only_fields = fields
+
+
 class ReturnItemSerializer(serializers.ModelSerializer):
     evidence = EvidenceSerializer(many=True, read_only=True)
+    catalog_item_id = serializers.UUIDField(
+        source="demo_order_item_id",
+        read_only=True,
+        allow_null=True,
+    )
+    max_quantity = serializers.SerializerMethodField()
     line_total = serializers.DecimalField(
         max_digits=14,
         decimal_places=2,
@@ -62,9 +104,11 @@ class ReturnItemSerializer(serializers.ModelSerializer):
         model = ReturnItem
         fields = (
             "id",
+            "catalog_item_id",
             "sku",
             "product_name",
             "quantity",
+            "max_quantity",
             "unit_price",
             "line_total",
             "reason",
@@ -74,6 +118,11 @@ class ReturnItemSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         read_only_fields = fields
+
+    def get_max_quantity(self, instance: ReturnItem) -> int:
+        if instance.demo_order_item_id:
+            return instance.demo_order_item.quantity
+        return instance.quantity
 
 
 class StatusEventSerializer(serializers.ModelSerializer):
@@ -143,51 +192,60 @@ class ReturnRequestDetailSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class ReturnRequestWriteSerializer(
+class CatalogReturnItemSelectionSerializer(
     StrictInputMixin,
-    serializers.ModelSerializer,
+    serializers.Serializer,
 ):
-    class Meta:
-        model = ReturnRequest
-        fields = (
-            "order_reference",
-            "customer_name",
-            "customer_email",
-        )
-        extra_kwargs = {
-            "order_reference": {"trim_whitespace": True},
-            "customer_name": {"trim_whitespace": True},
-            "customer_email": {"trim_whitespace": True},
-        }
-
-
-class ReturnItemWriteSerializer(
-    StrictInputMixin,
-    serializers.ModelSerializer,
-):
+    order_item_id = serializers.UUIDField()
     quantity = serializers.IntegerField(min_value=1)
-    unit_price = serializers.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        min_value=Decimal("0.00"),
-    )
     reason = serializers.ChoiceField(choices=ReturnReason.choices)
+    details = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default="",
+        max_length=2000,
+        trim_whitespace=True,
+    )
 
-    class Meta:
-        model = ReturnItem
-        fields = (
-            "sku",
-            "product_name",
-            "quantity",
-            "unit_price",
-            "reason",
-            "details",
-        )
-        extra_kwargs = {
-            "sku": {"trim_whitespace": True},
-            "product_name": {"trim_whitespace": True},
-            "details": {"trim_whitespace": True},
-        }
+
+class CatalogReturnCreateSerializer(
+    StrictInputMixin,
+    serializers.Serializer,
+):
+    order_id = serializers.UUIDField()
+    items = CatalogReturnItemSelectionSerializer(
+        many=True,
+        allow_empty=False,
+    )
+
+    def validate_items(self, items):
+        item_ids = [item["order_item_id"] for item in items]
+        if len(item_ids) != len(set(item_ids)):
+            raise serializers.ValidationError(
+                "Each order item can be selected only once.",
+                code="duplicate_order_item",
+            )
+        return items
+
+
+class ReturnItemUpdateSerializer(
+    StrictInputMixin,
+    serializers.Serializer,
+):
+    quantity = serializers.IntegerField(
+        required=False,
+        min_value=1,
+    )
+    reason = serializers.ChoiceField(
+        required=False,
+        choices=ReturnReason.choices,
+    )
+    details = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        max_length=2000,
+        trim_whitespace=True,
+    )
 
 
 class EvidenceWriteSerializer(

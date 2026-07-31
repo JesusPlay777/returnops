@@ -16,6 +16,8 @@ from django.db.models.functions import Coalesce
 from django.utils import timezone
 
 from returns.models import (
+    DemoOrder,
+    DemoOrderItem,
     Evidence,
     ReturnItem,
     ReturnRequest,
@@ -34,6 +36,19 @@ ALLOWED_ORDERINGS = {
     "total_value",
     "reference",
 }
+
+
+def eligible_demo_orders(visitor: VisitorSession):
+    """Return unused, eligible fictional orders for one active visitor."""
+    item_queryset = DemoOrderItem.objects.order_by("created_at", "sku")
+    return DemoOrder.objects.filter(
+        visitor_session_id=visitor.id,
+        visitor_session__expires_at__gt=timezone.now(),
+        return_eligible=True,
+        return_request__isnull=True,
+    ).prefetch_related(
+        Prefetch("items", queryset=item_queryset),
+    ).order_by("-placed_at", "order_reference")
 
 
 def _visitor_returns(visitor: VisitorSession):
@@ -99,7 +114,9 @@ def operations_return_list(
 
 
 def _detail_queryset(visitor: VisitorSession):
-    item_queryset = ReturnItem.objects.order_by(
+    item_queryset = ReturnItem.objects.select_related(
+        "demo_order_item",
+    ).order_by(
         "created_at",
     ).prefetch_related(
         Prefetch(

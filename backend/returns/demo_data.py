@@ -7,6 +7,23 @@ from returns.models import EvidenceKind, ReturnReason, ReturnStatus
 
 
 @dataclass(frozen=True, slots=True)
+class DemoOrderItemDefinition:
+    sku: str
+    product_name: str
+    quantity: int
+    unit_price: Decimal
+
+
+@dataclass(frozen=True, slots=True)
+class DemoOrderDefinition:
+    order_reference: str
+    customer_name: str
+    customer_email: str
+    placed_days_ago: int
+    items: tuple[DemoOrderItemDefinition, ...]
+
+
+@dataclass(frozen=True, slots=True)
 class DemoItemDefinition:
     sku: str
     product_name: str
@@ -49,6 +66,80 @@ def item(
         details=details,
         evidence_kinds=evidence_kinds,
     )
+
+
+def order_item(
+    sku: str,
+    product_name: str,
+    unit_price: str,
+    *,
+    quantity: int = 1,
+) -> DemoOrderItemDefinition:
+    return DemoOrderItemDefinition(
+        sku=sku,
+        product_name=product_name,
+        quantity=quantity,
+        unit_price=Decimal(unit_price),
+    )
+
+
+DEMO_ORDERS: tuple[DemoOrderDefinition, ...] = (
+    DemoOrderDefinition(
+        order_reference="ORD-90001",
+        customer_name="Taylor Example",
+        customer_email="taylor@example.com",
+        placed_days_ago=12,
+        items=(
+            order_item(
+                "DMO-ARM-31",
+                "Adjustable monitor arm",
+                "486.00",
+            ),
+            order_item(
+                "DMO-CAM-32",
+                "Conference webcam",
+                "288.00",
+            ),
+        ),
+    ),
+    DemoOrderDefinition(
+        order_reference="ORD-90002",
+        customer_name="Jordan Lee",
+        customer_email="jordan.lee@example.com",
+        placed_days_ago=18,
+        items=(
+            order_item(
+                "DMO-KBD-33",
+                "Compact mechanical keyboard",
+                "188.00",
+            ),
+            order_item(
+                "DMO-MSE-34",
+                "Ergonomic wireless mouse",
+                "142.00",
+                quantity=2,
+            ),
+        ),
+    ),
+    DemoOrderDefinition(
+        order_reference="ORD-90003",
+        customer_name="Camila Torres",
+        customer_email="camila.torres@example.com",
+        placed_days_ago=25,
+        items=(
+            order_item(
+                "DMO-HDP-35",
+                "Wireless studio headphones",
+                "324.00",
+            ),
+            order_item(
+                "DMO-HUB-36",
+                "Desktop connectivity hub",
+                "286.00",
+            ),
+        ),
+    ),
+)
 
 
 DEMO_RETURNS: tuple[DemoReturnDefinition, ...] = (

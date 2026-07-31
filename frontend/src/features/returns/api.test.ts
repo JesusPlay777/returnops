@@ -36,13 +36,27 @@ describe("createCustomerReturnsApi", () => {
     );
   });
 
-  it("creates a draft using the documented write contract", async () => {
+  it("lists eligible fictional orders", async () => {
+    const request = vi.fn().mockResolvedValue([]);
+    const returnsApi = createCustomerReturnsApi({ request });
+
+    await returnsApi.listEligibleOrders();
+
+    expect(request).toHaveBeenCalledWith("/api/v1/demo/orders/");
+  });
+
+  it("creates a draft using catalog identifiers and selections", async () => {
     const request = vi.fn().mockResolvedValue({ status: "DRAFT" });
     const returnsApi = createCustomerReturnsApi({ request });
     const input = {
-      order_reference: "ORD-90001",
-      customer_name: "Taylor Example",
-      customer_email: "taylor@example.com",
+      order_id: "order-1",
+      items: [
+        {
+          order_item_id: "order-item-1",
+          quantity: 1,
+          reason: "DAMAGED" as const,
+        },
+      ],
     };
 
     await returnsApi.create(input);
@@ -53,16 +67,22 @@ describe("createCustomerReturnsApi", () => {
     });
   });
 
-  it("patches only the supplied customer fields", async () => {
+  it("patches only mutable item fields", async () => {
     const request = vi.fn().mockResolvedValue({ status: "DRAFT" });
     const returnsApi = createCustomerReturnsApi({ request });
 
-    await returnsApi.update("82f4", { customer_name: "Changed name" });
-
-    expect(request).toHaveBeenCalledWith("/api/v1/returns/82f4/", {
-      method: "PATCH",
-      json: { customer_name: "Changed name" },
+    await returnsApi.updateItem("82f4", "item-1", {
+      quantity: 2,
+      reason: "WRONG_ITEM",
     });
+
+    expect(request).toHaveBeenCalledWith(
+      "/api/v1/returns/82f4/items/item-1/",
+      {
+      method: "PATCH",
+        json: { quantity: 2, reason: "WRONG_ITEM" },
+      },
+    );
   });
 
   it("keeps nested item and evidence mutations scoped to the return", async () => {

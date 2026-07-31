@@ -9,10 +9,18 @@ from rest_framework.exceptions import (
 from rest_framework.views import exception_handler as drf_exception_handler
 
 from returns.services.demo_dataset import VisitorSessionUnavailable
+from returns.services.catalog_orders import (
+    DemoOrderItemNotFound,
+    DemoOrderNotFound,
+    DemoOrderQuantityExceeded,
+    DemoOrderSelectionInvalid,
+    DemoOrderUnavailable,
+)
 from returns.services.return_requests import (
     EvidenceAlreadyAttached,
     EvidenceNotFound,
     ReturnItemNotFound,
+    ReturnItemQuantityExceeded,
     ReturnRequestImmutable,
 )
 from returns.services.transitions import (
@@ -51,6 +59,34 @@ def _translate_domain_exception(exception):
             detail="The requested return was not found.",
             code="return_not_found",
         )
+    if isinstance(exception, DemoOrderNotFound):
+        return NotFound(
+            detail="The fictional demo order was not found.",
+            code=exception.code,
+        )
+    if isinstance(exception, DemoOrderItemNotFound):
+        return NotFound(
+            detail="The selected item does not belong to this demo order.",
+            code=exception.code,
+        )
+    if isinstance(exception, DemoOrderUnavailable):
+        return DomainAPIException(
+            status_code=status.HTTP_409_CONFLICT,
+            code=exception.code,
+            detail="This fictional order is no longer available for return.",
+        )
+    if isinstance(exception, DemoOrderQuantityExceeded):
+        return DomainAPIException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=exception.code,
+            detail="The selected quantity exceeds the fictional order quantity.",
+        )
+    if isinstance(exception, DemoOrderSelectionInvalid):
+        return DomainAPIException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=exception.code,
+            detail="Select at least one unique fictional order item.",
+        )
     if isinstance(exception, ReturnItemNotFound):
         return NotFound(
             detail="The requested return item was not found.",
@@ -66,6 +102,12 @@ def _translate_domain_exception(exception):
             status_code=status.HTTP_409_CONFLICT,
             code=exception.code,
             detail="The return cannot be modified in its current state.",
+        )
+    if isinstance(exception, ReturnItemQuantityExceeded):
+        return DomainAPIException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            code=exception.code,
+            detail="The quantity exceeds the amount in the fictional order.",
         )
     if isinstance(exception, EvidenceAlreadyAttached):
         return DomainAPIException(

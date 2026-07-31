@@ -4,8 +4,14 @@ from datetime import datetime, timedelta
 from django.db import transaction
 from django.utils import timezone
 
-from returns.demo_data import DEMO_RETURNS, DemoReturnDefinition
+from returns.demo_data import (
+    DEMO_ORDERS,
+    DEMO_RETURNS,
+    DemoReturnDefinition,
+)
 from returns.models import (
+    DemoOrder,
+    DemoOrderItem,
     Evidence,
     EventActor,
     ReturnItem,
@@ -25,6 +31,8 @@ class VisitorSessionUnavailable(LookupError):
 
 @dataclass(frozen=True, slots=True)
 class DemoDatasetSummary:
+    order_count: int
+    order_item_count: int
     return_count: int
     item_count: int
     evidence_count: int
@@ -47,6 +55,12 @@ def _lock_active_visitor(visitor_id) -> VisitorSession:
 def _dataset_summary(visitor: VisitorSession) -> DemoDatasetSummary:
     requests = ReturnRequest.objects.filter(visitor_session=visitor)
     return DemoDatasetSummary(
+        order_count=DemoOrder.objects.filter(
+            visitor_session=visitor,
+        ).count(),
+        order_item_count=DemoOrderItem.objects.filter(
+            demo_order__visitor_session=visitor,
+        ).count(),
         return_count=requests.count(),
         item_count=ReturnItem.objects.filter(
             return_request__visitor_session=visitor,
@@ -115,9 +129,30 @@ def _create_status_events(
     _set_created_at(final_event, updated_at)
 
 
-def _create_demo_dataset(
-    visitor: VisitorSession,
-) -> DemoDatasetSummary:
+def _create_demo_orders(visitor: VisitorSession) -> None:
+    now = timezone.now()
+    for definition in DEMO_ORDERS:
+        demo_order = DemoOrder.objects.create(
+            visitor_session=visitor,
+            order_reference=definition.order_reference,
+            customer_name=definition.customer_name,
+            customer_email=definition.customer_email,
+            placed_at=now - timedelta(days=definition.placed_days_ago),
+            return_eligible=True,
+        )
+        DemoOrderItem.objects.bulk_create(
+            DemoOrderItem(
+                demo_order=demo_order,
+                sku=item_definition.sku,
+                product_name=item_definition.product_name,
+                quantity=item_definition.quantity,
+                unit_price=item_definition.unit_price,
+            )
+            for item_definition in definition.items
+        )
+
+
+def _create_demo_returns(visitor: VisitorSession) -> None:
     now = timezone.now()
 
     for definition in DEMO_RETURNS:
@@ -179,6 +214,12 @@ def _create_demo_dataset(
             updated_at,
         )
 
+
+def _create_demo_dataset(
+    visitor: VisitorSession,
+) -> DemoDatasetSummary:
+    _create_demo_orders(visitor)
+    _create_demo_returns(visitor)
     return _dataset_summary(visitor)
 
 
@@ -188,9 +229,11 @@ def seed_demo_dataset(
 ) -> DemoDatasetSummary:
     """Idempotently create the canonical dataset for one active visitor."""
     visitor = _lock_active_visitor(visitor_session.id)
-    if visitor.return_requests.exists():
-        return _dataset_summary(visitor)
-    return _create_demo_dataset(visitor)
+    if not visitor.demo_orders.exists():
+        _create_demo_orders(visitor)
+    if not visitor.return_requests.exists():
+        _create_demo_returns(visitor)
+    return _dataset_summary(visitor)
 
 
 @transaction.atomic
@@ -200,6 +243,7 @@ def reset_demo_dataset(
     """Atomically replace only one visitor's data and refresh its expiry."""
     visitor = _lock_active_visitor(visitor_session.id)
     visitor.return_requests.all().delete()
+    visitor.demo_orders.all().delete()
     summary = _create_demo_dataset(visitor)
 
     visitor.expires_at = timezone.now() + visitor_session_ttl()

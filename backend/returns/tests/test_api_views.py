@@ -24,6 +24,24 @@ class ReturnAPIIntegrationTests(TestCase):
             id=client.session[VISITOR_SESSION_KEY],
         )
 
+    def catalog_selection(self, client=None, order_index=0, item_index=0):
+        client = client or self.client
+        response = client.get(reverse("returns-api:demo-orders"))
+        self.assertEqual(response.status_code, 200, response.data)
+        order = response.data[order_index]
+        item = order["items"][item_index]
+        return order, {
+            "order_id": order["id"],
+            "items": [
+                {
+                    "order_item_id": item["id"],
+                    "quantity": 1,
+                    "reason": "DAMAGED",
+                    "details": "Fictional damage.",
+                }
+            ],
+        }
+
     def test_session_bootstraps_once_without_exposing_ownership(self):
         first_response, _ = self.bootstrap()
         visitor = self.visitor_for()
@@ -63,8 +81,9 @@ class ReturnAPIIntegrationTests(TestCase):
         operations = self.client.get(
             reverse("returns-api:operations-return-list"),
         )
+        demo_orders = self.client.get(reverse("returns-api:demo-orders"))
 
-        for response in (customer, operations):
+        for response in (customer, operations, demo_orders):
             with self.subTest(path=response.request["PATH_INFO"]):
                 self.assertEqual(response.status_code, 401)
                 self.assertEqual(
@@ -128,51 +147,51 @@ class ReturnAPIIntegrationTests(TestCase):
     def test_complete_customer_to_operations_flow(self):
         _, token = self.bootstrap()
         create_url = reverse("returns-api:customer-return-list")
+        order, payload = self.catalog_selection()
 
         rejected_payload = self.client.post(
             create_url,
             {
-                "order_reference": "ORD-90001",
-                "customer_name": "Taylor Example",
-                "customer_email": "taylor@example.com",
-                "status": "APPROVED",
+                **payload,
+                "customer_name": "Untrusted override",
             },
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
         self.assertEqual(rejected_payload.status_code, 400)
-        self.assertIn("status", rejected_payload.data["fields"])
+        self.assertIn("customer_name", rejected_payload.data["fields"])
 
         created = self.client.post(
             create_url,
-            {
-                "order_reference": "ORD-90001",
-                "customer_name": "Taylor Example",
-                "customer_email": "taylor@example.com",
-            },
+            payload,
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
         self.assertEqual(created.status_code, 201, created.data)
         self.assertEqual(created.data["reference"], "RTN-205")
         self.assertEqual(created.data["status"], "DRAFT")
-        return_id = created.data["id"]
-
-        item_created = self.client.post(
-            f"/api/v1/returns/{return_id}/items/",
-            {
-                "sku": "DMO-NEW-01",
-                "product_name": "Fictional new product",
-                "quantity": 1,
-                "unit_price": "49.00",
-                "reason": "DAMAGED",
-                "details": "Fictional damage.",
-            },
+        self.assertEqual(created.data["order_reference"], order["order_reference"])
+        self.assertEqual(created.data["customer_name"], order["customer_name"])
+        self.assertEqual(created.data["customer_email"], order["customer_email"])
+        self.assertEqual(len(created.data["items"]), 1)
+        self.assertEqual(
+            created.data["items"][0]["unit_price"],
+            order["items"][0]["unit_price"],
+        )
+        self.assertEqual(
+            len(self.client.get(reverse("returns-api:demo-orders")).data),
+            2,
+        )
+        unavailable = self.client.post(
+            create_url,
+            payload,
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
-        self.assertEqual(item_created.status_code, 201, item_created.data)
-        item_id = item_created.data["id"]
+        self.assertEqual(unavailable.status_code, 409)
+        self.assertEqual(unavailable.data["code"], "demo_order_unavailable")
+        return_id = created.data["id"]
+        item_id = created.data["items"][0]["id"]
 
         evidence_url = (
             f"/api/v1/returns/{return_id}/items/{item_id}/evidence/"
@@ -213,16 +232,16 @@ class ReturnAPIIntegrationTests(TestCase):
         self.assertEqual(submitted.status_code, 200, submitted.data)
         self.assertEqual(submitted.data["status"], "SUBMITTED")
 
-        immutable = self.client.patch(
+        server_owned_identity = self.client.patch(
             f"/api/v1/returns/{return_id}/",
             {"customer_name": "Changed too late"},
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
-        self.assertEqual(immutable.status_code, 409)
+        self.assertEqual(server_owned_identity.status_code, 405)
         self.assertEqual(
-            immutable.data["code"],
-            "return_request_immutable",
+            server_owned_identity.data["code"],
+            "method_not_allowed",
         )
 
         needs_information = self.client.post(
@@ -241,13 +260,16 @@ class ReturnAPIIntegrationTests(TestCase):
         )
 
         updated = self.client.patch(
-            f"/api/v1/returns/{return_id}/",
-            {"customer_name": "Taylor Updated"},
+            f"/api/v1/returns/{return_id}/items/{item_id}/",
+            {"details": "Added the requested fictional context."},
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
         self.assertEqual(updated.status_code, 200)
-        self.assertEqual(updated.data["customer_name"], "Taylor Updated")
+        self.assertEqual(
+            updated.data["details"],
+            "Added the requested fictional context.",
+        )
 
         missing_response = self.client.post(
             f"/api/v1/returns/{return_id}/submit/",
@@ -284,14 +306,11 @@ class ReturnAPIIntegrationTests(TestCase):
         second_client = APIClient(enforce_csrf_checks=True)
         _, first_token = self.bootstrap(first_client)
         _, second_token = self.bootstrap(second_client)
+        _, first_payload = self.catalog_selection(first_client)
 
         created = first_client.post(
             reverse("returns-api:customer-return-list"),
-            {
-                "order_reference": "ORD-PRIVATE",
-                "customer_name": "First Visitor",
-                "customer_email": "first@example.com",
-            },
+            first_payload,
             format="json",
             HTTP_X_CSRFTOKEN=first_token,
         )
@@ -301,15 +320,8 @@ class ReturnAPIIntegrationTests(TestCase):
             f"/api/v1/returns/{return_id}/",
         )
         hidden_write = second_client.post(
-            f"/api/v1/returns/{return_id}/items/",
-            {
-                "sku": "DMO-CROSS",
-                "product_name": "Cross visitor attempt",
-                "quantity": 1,
-                "unit_price": "10.00",
-                "reason": "OTHER",
-                "details": "",
-            },
+            reverse("returns-api:customer-return-list"),
+            first_payload,
             format="json",
             HTTP_X_CSRFTOKEN=second_token,
         )
@@ -317,44 +329,43 @@ class ReturnAPIIntegrationTests(TestCase):
         self.assertEqual(hidden_read.status_code, 404)
         self.assertEqual(hidden_write.status_code, 404)
         self.assertEqual(hidden_read.data["code"], "return_not_found")
-        self.assertEqual(hidden_write.data["code"], "return_not_found")
+        self.assertEqual(hidden_write.data["code"], "demo_order_not_found")
         self.assertEqual(
             ReturnRequest.objects.get(id=return_id).items.count(),
-            0,
+            1,
         )
 
     def test_nested_edit_and_delete_routes_modify_only_a_draft(self):
         _, token = self.bootstrap()
+        _, payload = self.catalog_selection(
+            order_index=1,
+            item_index=1,
+        )
         created = self.client.post(
             reverse("returns-api:customer-return-list"),
-            {
-                "order_reference": "ORD-DELETE",
-                "customer_name": "Delete Example",
-                "customer_email": "delete@example.com",
-            },
+            payload,
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
         return_id = created.data["id"]
-        item = self.client.post(
-            f"/api/v1/returns/{return_id}/items/",
-            {
-                "sku": "DMO-EDIT",
-                "product_name": "Editable fictional item",
-                "quantity": 1,
-                "unit_price": "25.00",
-                "reason": "OTHER",
-                "details": "",
-            },
-            format="json",
-            HTTP_X_CSRFTOKEN=token,
-        )
-        item_id = item.data["id"]
+        item_id = created.data["items"][0]["id"]
         item_url = f"/api/v1/returns/{return_id}/items/{item_id}/"
 
         updated_item = self.client.patch(
             item_url,
             {"quantity": 2},
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+        rejected_override = self.client.patch(
+            item_url,
+            {"sku": "SPOOFED", "unit_price": "0.01"},
+            format="json",
+            HTTP_X_CSRFTOKEN=token,
+        )
+        excessive_quantity = self.client.patch(
+            item_url,
+            {"quantity": 3},
             format="json",
             HTTP_X_CSRFTOKEN=token,
         )
@@ -384,11 +395,25 @@ class ReturnAPIIntegrationTests(TestCase):
 
         self.assertEqual(updated_item.status_code, 200)
         self.assertEqual(updated_item.data["quantity"], 2)
+        self.assertEqual(rejected_override.status_code, 400)
+        self.assertEqual(
+            set(rejected_override.data["fields"]),
+            {"sku", "unit_price"},
+        )
+        self.assertEqual(excessive_quantity.status_code, 400)
+        self.assertEqual(
+            excessive_quantity.data["code"],
+            "return_item_quantity_exceeded",
+        )
         self.assertEqual(evidence.status_code, 201)
         self.assertEqual(deleted_evidence.status_code, 204)
         self.assertEqual(deleted_item.status_code, 204)
         self.assertEqual(deleted_return.status_code, 204)
         self.assertFalse(ReturnRequest.objects.filter(id=return_id).exists())
+        self.assertEqual(
+            len(self.client.get(reverse("returns-api:demo-orders")).data),
+            3,
+        )
 
     def test_reset_changes_only_the_current_visitor(self):
         first_client = APIClient(enforce_csrf_checks=True)
@@ -396,20 +421,17 @@ class ReturnAPIIntegrationTests(TestCase):
         _, first_token = self.bootstrap(first_client)
         _, second_token = self.bootstrap(second_client)
         create_url = reverse("returns-api:customer-return-list")
-        payload = {
-            "order_reference": "ORD-EXTRA",
-            "customer_name": "Extra Example",
-            "customer_email": "extra@example.com",
-        }
+        _, first_payload = self.catalog_selection(first_client)
+        _, second_payload = self.catalog_selection(second_client)
         first_client.post(
             create_url,
-            payload,
+            first_payload,
             format="json",
             HTTP_X_CSRFTOKEN=first_token,
         )
         second_client.post(
             create_url,
-            payload,
+            second_payload,
             format="json",
             HTTP_X_CSRFTOKEN=second_token,
         )

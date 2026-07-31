@@ -19,16 +19,17 @@ from returns.api.openapi import (
     error_responses,
 )
 from returns.api.serializers import (
+    CatalogReturnCreateSerializer,
+    DemoOrderSerializer,
     DemoResetResponseSerializer,
     EvidenceSerializer,
     EvidenceWriteSerializer,
     OperationsQueueQuerySerializer,
     OperationsTransitionSerializer,
     ReturnItemSerializer,
-    ReturnItemWriteSerializer,
+    ReturnItemUpdateSerializer,
     ReturnRequestDetailSerializer,
     ReturnRequestSummarySerializer,
-    ReturnRequestWriteSerializer,
     SubmitReturnSerializer,
     VisitorSessionResponseSerializer,
 )
@@ -36,6 +37,7 @@ from returns.models import ReturnRequest
 from returns.selectors import (
     customer_return_detail,
     customer_return_list,
+    eligible_demo_orders,
     operations_return_detail,
     operations_return_list,
 )
@@ -43,15 +45,13 @@ from returns.services.demo_dataset import (
     reset_demo_dataset,
     seed_demo_dataset,
 )
+from returns.services.catalog_orders import create_return_from_demo_order
 from returns.services.return_requests import (
     add_item_evidence,
-    add_return_item,
-    create_draft_return,
     delete_draft_return,
     delete_item_evidence,
     delete_return_item,
     update_return_item,
-    update_return_request,
 )
 from returns.services.transitions import (
     submit_return,
@@ -147,6 +147,31 @@ class DemoResetView(APIView):
         return Response(serializer.data)
 
 
+class DemoOrderListView(APIView):
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        operation_id="listEligibleDemoOrders",
+        tags=["Demo orders"],
+        summary="List unused fictional orders eligible for return",
+        description=(
+            "Returns only server-owned fictional catalog data from the "
+            "current visitor sandbox. Orders already used by a return are "
+            "excluded."
+        ),
+        auth=VISITOR_SECURITY,
+        responses={
+            200: DemoOrderSerializer(many=True),
+            **error_responses(401),
+        },
+    )
+    def get(self, request):
+        visitor = _visitor(request)
+        seed_demo_dataset(visitor)
+        orders = eligible_demo_orders(visitor)
+        return Response(DemoOrderSerializer(orders, many=True).data)
+
+
 class CustomerReturnViewSet(viewsets.GenericViewSet):
     permission_classes = [AllowAny]
     pagination_class = ReturnPageNumberPagination
@@ -180,20 +205,28 @@ class CustomerReturnViewSet(viewsets.GenericViewSet):
     @extend_schema(
         operation_id="createCustomerReturn",
         tags=["Customer returns"],
-        summary="Create an empty draft return",
+        summary="Create a draft from an eligible fictional order",
         auth=VISITOR_WRITE_SECURITY,
-        request=ReturnRequestWriteSerializer,
+        request=CatalogReturnCreateSerializer,
         responses={
             201: ReturnRequestDetailSerializer,
             **error_responses(400, 401, 403),
         },
         examples=[
             OpenApiExample(
-                "New fictional return",
+                "Return selected catalog items",
                 value={
-                    "order_reference": "ORD-90001",
-                    "customer_name": "Taylor Example",
-                    "customer_email": "taylor@example.com",
+                    "order_id": "3ce8a3de-d732-49bc-b1c4-1698091cf175",
+                    "items": [
+                        {
+                            "order_item_id": (
+                                "ca385771-23f5-4da7-b7c7-35c1c5b21ab0"
+                            ),
+                            "quantity": 1,
+                            "reason": "DAMAGED",
+                            "details": "Fictional product damage.",
+                        }
+                    ],
                 },
                 request_only=True,
             )
@@ -201,11 +234,12 @@ class CustomerReturnViewSet(viewsets.GenericViewSet):
     )
     def create(self, request):
         visitor = _visitor(request)
-        serializer = ReturnRequestWriteSerializer(data=request.data)
+        serializer = CatalogReturnCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return_request = create_draft_return(
+        return_request = create_return_from_demo_order(
             visitor,
-            data=serializer.validated_data,
+            order_id=serializer.validated_data["order_id"],
+            selections=serializer.validated_data["items"],
         )
         detail = customer_return_detail(visitor, return_request.id)
         return Response(
@@ -226,33 +260,6 @@ class CustomerReturnViewSet(viewsets.GenericViewSet):
     )
     def retrieve(self, request, pk=None):
         detail = customer_return_detail(_visitor(request), pk)
-        return Response(ReturnRequestDetailSerializer(detail).data)
-
-    @extend_schema(
-        operation_id="updateCustomerReturn",
-        tags=["Customer returns"],
-        summary="Update mutable fields on a draft or needs-information return",
-        auth=VISITOR_WRITE_SECURITY,
-        parameters=[RETURN_ID_PARAMETER],
-        request=ReturnRequestWriteSerializer,
-        responses={
-            200: ReturnRequestDetailSerializer,
-            **error_responses(400, 401, 403, 404, 409),
-        },
-    )
-    def partial_update(self, request, pk=None):
-        visitor = _visitor(request)
-        serializer = ReturnRequestWriteSerializer(
-            data=request.data,
-            partial=True,
-        )
-        serializer.is_valid(raise_exception=True)
-        update_return_request(
-            visitor,
-            pk,
-            data=serializer.validated_data,
-        )
-        detail = customer_return_detail(visitor, pk)
         return Response(ReturnRequestDetailSerializer(detail).data)
 
     @extend_schema(
@@ -300,39 +307,13 @@ class CustomerReturnViewSet(viewsets.GenericViewSet):
         return Response(ReturnRequestDetailSerializer(detail).data)
 
     @extend_schema(
-        operation_id="addCustomerReturnItem",
-        tags=["Customer returns"],
-        summary="Add an item to a mutable return",
-        auth=VISITOR_WRITE_SECURITY,
-        parameters=[RETURN_ID_PARAMETER],
-        request=ReturnItemWriteSerializer,
-        responses={
-            201: ReturnItemSerializer,
-            **error_responses(400, 401, 403, 404, 409),
-        },
-    )
-    @action(detail=True, methods=["post"], url_path="items")
-    def add_item(self, request, pk=None):
-        serializer = ReturnItemWriteSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        return_item = add_return_item(
-            _visitor(request),
-            pk,
-            data=serializer.validated_data,
-        )
-        return Response(
-            ReturnItemSerializer(return_item).data,
-            status=status.HTTP_201_CREATED,
-        )
-
-    @extend_schema(
         methods=["PATCH"],
         operation_id="updateCustomerReturnItem",
         tags=["Customer returns"],
         summary="Update an item on a mutable return",
         auth=VISITOR_WRITE_SECURITY,
         parameters=[RETURN_ID_PARAMETER, ITEM_ID_PARAMETER],
-        request=ReturnItemWriteSerializer,
+        request=ReturnItemUpdateSerializer,
         responses={
             200: ReturnItemSerializer,
             **error_responses(400, 401, 403, 404, 409),
@@ -361,7 +342,7 @@ class CustomerReturnViewSet(viewsets.GenericViewSet):
             delete_return_item(visitor, pk, item_id)
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-        serializer = ReturnItemWriteSerializer(
+        serializer = ReturnItemUpdateSerializer(
             data=request.data,
             partial=True,
         )

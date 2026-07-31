@@ -70,8 +70,11 @@ and field errors.
 The customer interface is organized as a feature module under
 `src/features/returns`. Its contract types, request functions, presentation,
 and tests remain together. The first connected screen lists the visitor's
-paginated returns and exercises real retrieve, create, and update operations;
-all requests still pass through the shared cookie and CSRF-aware client.
+paginated returns and exercises real retrieve and catalog-backed create
+operations; all requests still pass through the shared cookie and CSRF-aware
+client. Eligible demo orders are persisted per visitor. The frontend submits
+only catalog UUIDs, quantities, reasons, and details, while Django copies and
+locks customer, product, SKU, and price fields transactionally.
 
 Mutable requests open a dedicated three-step client workflow: items, curated
 evidence, and review. Each nested mutation is followed by a fresh aggregate

@@ -24,10 +24,10 @@ class OpenAPIContractTests(SimpleTestCase):
             {
                 "/api/v1/session/",
                 "/api/v1/demo/reset/",
+                "/api/v1/demo/orders/",
                 "/api/v1/returns/",
                 "/api/v1/returns/{id}/",
                 "/api/v1/returns/{id}/submit/",
-                "/api/v1/returns/{id}/items/",
                 "/api/v1/returns/{id}/items/{item_id}/",
                 (
                     "/api/v1/returns/{id}/items/{item_id}/"
@@ -57,10 +57,15 @@ class OpenAPIContractTests(SimpleTestCase):
         session_get = self.schema["paths"]["/api/v1/session/"]["get"]
         returns_get = self.schema["paths"]["/api/v1/returns/"]["get"]
         returns_post = self.schema["paths"]["/api/v1/returns/"]["post"]
+        orders_get = self.schema["paths"]["/api/v1/demo/orders/"]["get"]
 
         self.assertNotIn("security", session_get)
         self.assertEqual(
             returns_get["security"],
+            [{"visitorSession": []}],
+        )
+        self.assertEqual(
+            orders_get["security"],
             [{"visitorSession": []}],
         )
         self.assertEqual(

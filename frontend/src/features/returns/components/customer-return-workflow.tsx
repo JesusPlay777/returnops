@@ -9,9 +9,7 @@ import {
 
 import {
   addCustomerReturnEvidence,
-  addCustomerReturnItem,
   deleteCustomerReturnEvidence,
-  deleteCustomerReturnItem,
   retrieveCustomerReturn,
   submitCustomerReturn,
   updateCustomerReturnItem,
@@ -19,7 +17,7 @@ import {
 import type {
   EvidenceKind,
   ReturnItem,
-  ReturnItemInput,
+  ReturnItemUpdate,
   ReturnReason,
   ReturnRequestDetail,
 } from "@/features/returns/types";
@@ -35,8 +33,7 @@ import styles from "./customer-return-workflow.module.css";
 type Locale = "en" | "es";
 type Step = 1 | 2 | 3;
 type ItemEditorState =
-  | { mode: "create" }
-  | { mode: "edit"; item: ReturnItem }
+  | { item: ReturnItem }
   | null;
 
 const reasonLabels: Record<Locale, Record<ReturnReason, string>> = {
@@ -102,10 +99,8 @@ const copy = {
     reviewStep: "Review",
     itemsTitle: "Which items are you returning?",
     itemsIntro:
-      "Add fictional products to this request. At least one item is required.",
-    addItem: "Add item",
+      "Review the products selected from your eligible fictional order.",
     editItem: "Edit item",
-    noItems: "No items added yet.",
     sku: "SKU",
     product: "Product name",
     quantity: "Quantity",
@@ -117,7 +112,6 @@ const copy = {
     saveItem: "Save item",
     saving: "Saving…",
     edit: "Edit",
-    remove: "Remove",
     itemCount: (count: number) => `${count} ${count === 1 ? "item" : "items"}`,
     evidenceTitle: "Add supporting evidence",
     evidenceIntro:
@@ -160,10 +154,8 @@ const copy = {
     reviewStep: "Revisión",
     itemsTitle: "¿Qué artículos deseas devolver?",
     itemsIntro:
-      "Agrega productos ficticios a esta solicitud. Se requiere al menos un artículo.",
-    addItem: "Agregar artículo",
+      "Revisa los productos seleccionados desde tu pedido ficticio elegible.",
     editItem: "Editar artículo",
-    noItems: "Todavía no agregaste artículos.",
     sku: "SKU",
     product: "Nombre del producto",
     quantity: "Cantidad",
@@ -175,7 +167,6 @@ const copy = {
     saveItem: "Guardar artículo",
     saving: "Guardando…",
     edit: "Editar",
-    remove: "Eliminar",
     itemCount: (count: number) =>
       `${count} ${count === 1 ? "artículo" : "artículos"}`,
     evidenceTitle: "Agrega evidencia de respaldo",
@@ -280,20 +271,18 @@ export default function CustomerReturnWorkflow({
     }
   }
 
-  async function saveItem(input: ReturnItemInput): Promise<boolean> {
+  async function saveItem(input: ReturnItemUpdate): Promise<boolean> {
     const saved = await mutate(() =>
-      itemEditor?.mode === "edit"
-        ? updateCustomerReturnItem(returnRequest.id, itemEditor.item.id, input)
-        : addCustomerReturnItem(returnRequest.id, input),
+      updateCustomerReturnItem(
+        returnRequest.id,
+        itemEditor!.item.id,
+        input,
+      ),
     );
     if (saved) {
       setItemEditor(null);
     }
     return saved;
-  }
-
-  async function removeItem(itemId: string) {
-    await mutate(() => deleteCustomerReturnItem(returnRequest.id, itemId));
   }
 
   async function attachEvidence(item: ReturnItem, kind: EvidenceKind) {
@@ -406,9 +395,7 @@ export default function CustomerReturnWorkflow({
               editor={itemEditor}
               locale={locale}
               onCancelEdit={() => setItemEditor(null)}
-              onEdit={(item) => setItemEditor({ mode: "edit", item })}
-              onNew={() => setItemEditor({ mode: "create" })}
-              onRemove={removeItem}
+              onEdit={(item) => setItemEditor({ item })}
               onSave={saveItem}
               returnRequest={returnRequest}
             />
@@ -476,8 +463,6 @@ function ItemsStep({
   locale,
   onCancelEdit,
   onEdit,
-  onNew,
-  onRemove,
   onSave,
   returnRequest,
 }: {
@@ -486,9 +471,7 @@ function ItemsStep({
   locale: Locale;
   onCancelEdit: () => void;
   onEdit: (item: ReturnItem) => void;
-  onNew: () => void;
-  onRemove: (itemId: string) => Promise<void>;
-  onSave: (input: ReturnItemInput) => Promise<boolean>;
+  onSave: (input: ReturnItemUpdate) => Promise<boolean>;
   returnRequest: ReturnRequestDetail;
 }) {
   const t = copy[locale];
@@ -499,18 +482,13 @@ function ItemsStep({
           <h1>{t.itemsTitle}</h1>
           <p>{t.itemsIntro}</p>
         </div>
-        {!editor && (
-          <button className={styles.addButton} disabled={busy} onClick={onNew} type="button">
-            + {t.addItem}
-          </button>
-        )}
       </div>
 
       {editor && (
         <ItemForm
           busy={busy}
           editor={editor}
-          key={editor.mode === "edit" ? editor.item.id : "new-item"}
+          key={editor.item.id}
           locale={locale}
           onCancel={onCancelEdit}
           onSave={onSave}
@@ -518,13 +496,6 @@ function ItemsStep({
       )}
 
       <div className={styles.itemList}>
-        {returnRequest.items.length === 0 && !editor && (
-          <div className={styles.emptyState}>
-            <span aria-hidden="true">□</span>
-            <p>{t.noItems}</p>
-            <button onClick={onNew} type="button">+ {t.addItem}</button>
-          </div>
-        )}
         {returnRequest.items.map((item) => (
           <article className={styles.itemCard} key={item.id}>
             <span className={styles.itemIcon} aria-hidden="true">□</span>
@@ -538,7 +509,6 @@ function ItemsStep({
             <div className={styles.itemActions}>
               <strong>{formatMoney(item.line_total, returnRequest.currency, locale)}</strong>
               <button disabled={busy} onClick={() => onEdit(item)} type="button">{t.edit}</button>
-              <button disabled={busy} onClick={() => onRemove(item.id)} type="button">{t.remove}</button>
             </div>
           </article>
         ))}
@@ -558,27 +528,14 @@ function ItemForm({
   editor: Exclude<ItemEditorState, null>;
   locale: Locale;
   onCancel: () => void;
-  onSave: (input: ReturnItemInput) => Promise<boolean>;
+  onSave: (input: ReturnItemUpdate) => Promise<boolean>;
 }) {
   const t = copy[locale];
-  const initial: ReturnItemInput =
-    editor.mode === "edit"
-      ? {
-          sku: editor.item.sku,
-          product_name: editor.item.product_name,
-          quantity: editor.item.quantity,
-          unit_price: editor.item.unit_price,
-          reason: editor.item.reason,
-          details: editor.item.details,
-        }
-      : {
-          sku: "",
-          product_name: "",
-          quantity: 1,
-          unit_price: "",
-          reason: "DAMAGED",
-          details: "",
-        };
+  const initial: ReturnItemUpdate = {
+    quantity: editor.item.quantity,
+    reason: editor.item.reason,
+    details: editor.item.details,
+  };
   const [form, setForm] = useState(initial);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -589,49 +546,22 @@ function ItemForm({
   return (
     <form className={styles.itemForm} onSubmit={submit}>
       <div className={styles.formHeading}>
-        <h2>{editor.mode === "edit" ? t.editItem : t.addItem}</h2>
+        <div>
+          <h2>{t.editItem}</h2>
+          <p>{editor.item.sku} · {editor.item.product_name} · {formatMoney(editor.item.unit_price, "USD", locale)}</p>
+        </div>
         <button disabled={busy} onClick={onCancel} type="button">×</button>
       </div>
       <div className={styles.formGrid}>
         <label>
-          <span>{t.sku}</span>
-          <input
-            maxLength={64}
-            onChange={(event) => setForm({ ...form, sku: event.target.value })}
-            placeholder="DMO-ITEM-01"
-            required
-            value={form.sku}
-          />
-        </label>
-        <label className={styles.wideField}>
-          <span>{t.product}</span>
-          <input
-            maxLength={160}
-            onChange={(event) => setForm({ ...form, product_name: event.target.value })}
-            placeholder="Adjustable monitor arm"
-            required
-            value={form.product_name}
-          />
-        </label>
-        <label>
           <span>{t.quantity}</span>
           <input
+            max={editor.item.max_quantity}
             min="1"
             onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })}
             required
             type="number"
             value={form.quantity}
-          />
-        </label>
-        <label>
-          <span>{t.price}</span>
-          <input
-            min="0"
-            onChange={(event) => setForm({ ...form, unit_price: event.target.value })}
-            required
-            step="0.01"
-            type="number"
-            value={form.unit_price}
           />
         </label>
         <label>

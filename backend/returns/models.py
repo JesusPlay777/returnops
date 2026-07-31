@@ -72,6 +72,106 @@ class VisitorSession(models.Model):
         return self.expires_at <= timezone.now()
 
 
+class DemoOrder(models.Model):
+    """One server-owned fictional order available in a visitor sandbox."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    visitor_session = models.ForeignKey(
+        VisitorSession,
+        on_delete=models.CASCADE,
+        related_name="demo_orders",
+        editable=False,
+    )
+    order_reference = models.CharField(max_length=40)
+    customer_name = models.CharField(max_length=120)
+    customer_email = models.EmailField(max_length=254)
+    currency = models.CharField(max_length=3, default="USD", editable=False)
+    placed_at = models.DateTimeField(editable=False)
+    return_eligible = models.BooleanField(default=True, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-placed_at", "order_reference")
+        indexes = (
+            models.Index(
+                fields=("visitor_session", "return_eligible", "-placed_at"),
+                name="ret_order_vis_eligible_idx",
+            ),
+        )
+        constraints = (
+            models.UniqueConstraint(
+                fields=("visitor_session", "order_reference"),
+                name="ret_order_unique_vis_ref",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(currency="USD"),
+                name="ret_order_currency_usd",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    ~models.Q(order_reference="")
+                    & ~models.Q(customer_name="")
+                    & ~models.Q(customer_email="")
+                ),
+                name="ret_order_required_text",
+            ),
+        )
+
+    def __str__(self) -> str:
+        return self.order_reference
+
+
+class DemoOrderItem(models.Model):
+    """Server-owned product and price belonging to a fictional order."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    demo_order = models.ForeignKey(
+        DemoOrder,
+        on_delete=models.CASCADE,
+        related_name="items",
+        editable=False,
+    )
+    sku = models.CharField(max_length=64)
+    product_name = models.CharField(max_length=160)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("created_at", "sku")
+        indexes = (
+            models.Index(
+                fields=("demo_order", "created_at"),
+                name="ret_order_item_created_idx",
+            ),
+        )
+        constraints = (
+            models.UniqueConstraint(
+                fields=("demo_order", "sku"),
+                name="ret_order_item_unique_sku",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(quantity__gt=0),
+                name="ret_order_item_qty_positive",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(unit_price__gte=0),
+                name="ret_order_item_price_nonneg",
+            ),
+            models.CheckConstraint(
+                condition=(~models.Q(sku="") & ~models.Q(product_name="")),
+                name="ret_order_item_required_text",
+            ),
+        )
+
+    def __str__(self) -> str:
+        return f"{self.sku} — {self.product_name}"
+
+    @property
+    def line_total(self) -> Decimal:
+        return self.unit_price * self.quantity
+
+
 class ReturnRequest(models.Model):
     """Aggregate root for a fictional return request."""
 
@@ -80,6 +180,14 @@ class ReturnRequest(models.Model):
         VisitorSession,
         on_delete=models.CASCADE,
         related_name="return_requests",
+        editable=False,
+    )
+    demo_order = models.OneToOneField(
+        DemoOrder,
+        on_delete=models.SET_NULL,
+        related_name="return_request",
+        null=True,
+        blank=True,
         editable=False,
     )
     reference = models.CharField(
@@ -168,6 +276,14 @@ class ReturnItem(models.Model):
         related_name="items",
         editable=False,
     )
+    demo_order_item = models.ForeignKey(
+        DemoOrderItem,
+        on_delete=models.SET_NULL,
+        related_name="return_items",
+        null=True,
+        blank=True,
+        editable=False,
+    )
     sku = models.CharField(max_length=64)
     product_name = models.CharField(max_length=160)
     quantity = models.PositiveIntegerField()
@@ -186,6 +302,11 @@ class ReturnItem(models.Model):
             ),
         )
         constraints = (
+            models.UniqueConstraint(
+                fields=("return_request", "demo_order_item"),
+                condition=models.Q(demo_order_item__isnull=False),
+                name="ret_item_unique_order_item",
+            ),
             models.CheckConstraint(
                 condition=models.Q(quantity__gt=0),
                 name="ret_item_quantity_positive",
