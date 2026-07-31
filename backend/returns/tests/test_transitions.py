@@ -3,7 +3,7 @@ from datetime import timedelta
 from threading import Barrier
 from unittest.mock import patch
 
-from django.db import close_old_connections
+from django.db import close_old_connections, connections
 from django.test import TestCase, TransactionTestCase
 from django.utils import timezone
 
@@ -353,7 +353,7 @@ class ReturnTransitionConcurrencyTests(TransactionTestCase):
             except InvalidReturnTransition:
                 return "conflict"
             finally:
-                close_old_connections()
+                connections.close_all()
 
         with ThreadPoolExecutor(max_workers=2) as executor:
             results = list(

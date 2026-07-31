@@ -9,6 +9,12 @@ from rest_framework.exceptions import (
 from rest_framework.views import exception_handler as drf_exception_handler
 
 from returns.services.demo_dataset import VisitorSessionUnavailable
+from returns.services.return_requests import (
+    EvidenceAlreadyAttached,
+    EvidenceNotFound,
+    ReturnItemNotFound,
+    ReturnRequestImmutable,
+)
 from returns.services.transitions import (
     InvalidReturnTransition,
     InvalidTransitionNote,
@@ -44,6 +50,28 @@ def _translate_domain_exception(exception):
         return NotFound(
             detail="The requested return was not found.",
             code="return_not_found",
+        )
+    if isinstance(exception, ReturnItemNotFound):
+        return NotFound(
+            detail="The requested return item was not found.",
+            code=exception.code,
+        )
+    if isinstance(exception, EvidenceNotFound):
+        return NotFound(
+            detail="The requested evidence was not found.",
+            code=exception.code,
+        )
+    if isinstance(exception, ReturnRequestImmutable):
+        return DomainAPIException(
+            status_code=status.HTTP_409_CONFLICT,
+            code=exception.code,
+            detail="The return cannot be modified in its current state.",
+        )
+    if isinstance(exception, EvidenceAlreadyAttached):
+        return DomainAPIException(
+            status_code=status.HTTP_409_CONFLICT,
+            code=exception.code,
+            detail="This evidence is already attached to the item.",
         )
     if isinstance(exception, InvalidReturnTransition):
         return DomainAPIException(

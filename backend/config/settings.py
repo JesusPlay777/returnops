@@ -153,6 +153,9 @@ CSRF_TRUSTED_ORIGINS = env_list(
 CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "returns.api.authentication.VisitorCSRFAuthentication",
+    ],
     "EXCEPTION_HANDLER": "returns.api.exceptions.exception_handler",
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",

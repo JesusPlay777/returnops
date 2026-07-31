@@ -291,6 +291,11 @@ class OperationsQueueQuerySerializer(
         ),
     )
     page = serializers.IntegerField(required=False, default=1, min_value=1)
+    page_size = serializers.IntegerField(
+        required=False,
+        min_value=1,
+        max_value=50,
+    )
 
 
 class VisitorSessionResponseSerializer(serializers.Serializer):
