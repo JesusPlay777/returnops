@@ -55,6 +55,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "corsheaders",
+    "drf_spectacular",
+    "drf_spectacular_sidecar",
     "rest_framework",
     "core",
     "returns.apps.ReturnsConfig",
@@ -165,6 +167,7 @@ REST_FRAMEWORK = {
         "rest_framework.parsers.MultiPartParser",
         "rest_framework.parsers.FormParser",
     ],
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -174,6 +177,62 @@ SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_NAME = "returnops_csrftoken"
 CSRF_COOKIE_SAMESITE = "Lax"
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "ReturnOps API",
+    "DESCRIPTION": (
+        "Versioned API contract for the ReturnOps clean-room portfolio demo. "
+        "All business data is fictional and isolated by browser visitor."
+    ),
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+    "COMPONENT_SPLIT_REQUEST": True,
+    "SWAGGER_UI_DIST": "SIDECAR",
+    "SWAGGER_UI_FAVICON_HREF": "SIDECAR",
+    "REDOC_DIST": "SIDECAR",
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "displayOperationId": True,
+        "persistAuthorization": False,
+    },
+    "TAGS": [
+        {
+            "name": "Demo session",
+            "description": "Bootstrap and reset the isolated visitor sandbox.",
+        },
+        {
+            "name": "Customer returns",
+            "description": "Create, edit, submit, and follow returns.",
+        },
+        {
+            "name": "Operations queue",
+            "description": "Review and transition submitted returns.",
+        },
+    ],
+    "APPEND_COMPONENTS": {
+        "securitySchemes": {
+            "visitorSession": {
+                "type": "apiKey",
+                "in": "cookie",
+                "name": SESSION_COOKIE_NAME,
+                "description": (
+                    "Opaque HttpOnly Django session cookie. Obtain it from "
+                    "GET /api/v1/session/; visitor UUIDs are never accepted."
+                ),
+            },
+            "csrfToken": {
+                "type": "apiKey",
+                "in": "header",
+                "name": "X-CSRFToken",
+                "description": (
+                    "Required with the visitor session for POST, PATCH, and "
+                    "DELETE. Read its value from the non-HttpOnly "
+                    f"{CSRF_COOKIE_NAME} cookie."
+                ),
+            },
+        }
+    },
+}
 
 if not DEBUG:
     SESSION_COOKIE_SECURE = True

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useDemoSession } from "@/providers/demo-session-provider";
 import styles from "./api-status.module.css";
 
 type Health = {
@@ -16,6 +17,7 @@ type RequestState =
 
 export default function ApiStatus() {
   const [request, setRequest] = useState<RequestState>({ kind: "loading" });
+  const demoSession = useDemoSession();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -73,6 +75,28 @@ export default function ApiStatus() {
         }
         state={isLoading ? "loading" : databaseReady ? "ready" : "error"}
       />
+      <ServiceRow
+        code="V"
+        label="Visitor sandbox"
+        detail={
+          demoSession.status === "bootstrapping"
+            ? "Session · starting"
+            : demoSession.status === "ready"
+              ? `Session · ${demoSession.session.dataset_ready ? "ready" : "empty"}`
+              : "Session · unavailable"
+        }
+        state={
+          demoSession.status === "bootstrapping"
+            ? "loading"
+            : demoSession.status === "ready" &&
+                demoSession.session.dataset_ready
+              ? "ready"
+              : "error"
+        }
+        onRetry={
+          demoSession.status === "error" ? demoSession.retry : undefined
+        }
+      />
     </div>
   );
 }
@@ -82,11 +106,13 @@ function ServiceRow({
   label,
   detail,
   state,
+  onRetry,
 }: {
   code: string;
   label: string;
   detail: string;
   state: "loading" | "ready" | "error";
+  onRetry?: () => void;
 }) {
   return (
     <div className={styles.service}>
@@ -97,10 +123,16 @@ function ServiceRow({
         <strong>{label}</strong>
         <small>{detail}</small>
       </span>
-      <span
-        className={`${styles.statusDot} ${styles[state]}`}
-        aria-label={state === "loading" ? "Checking" : state}
-      />
+      {onRetry ? (
+        <button className={styles.retryButton} type="button" onClick={onRetry}>
+          Retry
+        </button>
+      ) : (
+        <span
+          className={`${styles.statusDot} ${styles[state]}`}
+          aria-label={state === "loading" ? "Checking" : state}
+        />
+      )}
     </div>
   );
 }

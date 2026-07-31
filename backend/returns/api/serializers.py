@@ -317,3 +317,11 @@ class DemoResetResponseSerializer(serializers.Serializer):
     reset_at = serializers.DateTimeField(read_only=True)
     return_count = serializers.IntegerField(read_only=True)
     message_code = serializers.CharField(read_only=True)
+
+
+class APIErrorSerializer(serializers.Serializer):
+    """Stable error envelope returned by every handled API exception."""
+
+    code = serializers.CharField(read_only=True)
+    detail = serializers.CharField(read_only=True)
+    fields = serializers.JSONField(read_only=True)

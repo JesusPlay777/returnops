@@ -51,6 +51,8 @@ Open:
 
 - Web: http://localhost:3000
 - API health: http://localhost:8000/api/health/
+- API documentation: http://localhost:8000/api/v1/docs/
+- OpenAPI schema: http://localhost:8000/api/v1/schema/
 - Django admin: http://localhost:8000/admin/
 
 The backend container applies Django migrations before starting.
@@ -65,6 +67,7 @@ docker compose exec backend python manage.py test
 # Run frontend quality checks
 docker compose exec frontend npm run lint
 docker compose exec frontend npm run typecheck
+docker compose exec frontend npm test
 
 # Create a Django administrator
 docker compose exec backend python manage.py createsuperuser
@@ -95,5 +98,7 @@ The application itself uses PostgreSQL in Docker and in deployed environments.
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [API v1 and browser security](docs/api.md)
+- [OpenAPI schema snapshot](docs/openapi.yaml)
 - [Returns domain and visitor-isolation contract](docs/returns-domain-contract.md)
 - [ADR 0001: synchronous core](docs/decisions/0001-synchronous-core.md)

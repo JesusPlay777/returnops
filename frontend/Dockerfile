@@ -23,9 +23,12 @@ WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
-ENV NEXT_TELEMETRY_DISABLED=1
+ARG NEXT_PUBLIC_API_URL=http://localhost:8000
 
-RUN npm run build
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+
+RUN mkdir -p public && npm run build
 
 FROM node:22-alpine AS production
 

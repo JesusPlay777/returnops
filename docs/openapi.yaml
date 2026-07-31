@@ -1,0 +1,1378 @@
+openapi: 3.0.3
+info:
+  title: ReturnOps API
+  version: 1.0.0
+  description: Versioned API contract for the ReturnOps clean-room portfolio demo.
+    All business data is fictional and isolated by browser visitor.
+paths:
+  /api/v1/demo/reset/:
+    post:
+      operationId: resetDemoDataset
+      description: Atomically replaces only the current visitor's data with the canonical
+        fictional scenario and refreshes its expiration.
+      summary: Reset the current visitor's fictional dataset
+      tags:
+      - Demo session
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DemoResetResponse'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/operations/returns/:
+    get:
+      operationId: listOperationsReturns
+      summary: List non-draft returns for operational review
+      parameters:
+      - in: query
+        name: ordering
+        schema:
+          enum:
+          - -updated_at
+          - updated_at
+          - -total_value
+          - total_value
+          - reference
+          type: string
+          default: -updated_at
+          minLength: 1
+        description: |-
+          * `-updated_at` - -updated_at
+          * `updated_at` - updated_at
+          * `-total_value` - -total_value
+          * `total_value` - total_value
+          * `reference` - reference
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+          maximum: 50
+          minimum: 1
+      - in: query
+        name: search
+        schema:
+          type: string
+          default: ''
+          maxLength: 120
+      - in: query
+        name: status
+        schema:
+          enum:
+          - SUBMITTED
+          - NEEDS_INFORMATION
+          - APPROVED
+          - REJECTED
+          - null
+          type: string
+          nullable: true
+          minLength: 1
+        description: |-
+          * `SUBMITTED` - SUBMITTED
+          * `NEEDS_INFORMATION` - NEEDS_INFORMATION
+          * `APPROVED` - APPROVED
+          * `REJECTED` - REJECTED
+      tags:
+      - Operations queue
+      security:
+      - visitorSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReturnRequestSummaryList'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/operations/returns/{id}/:
+    get:
+      operationId: retrieveOperationsReturn
+      summary: Retrieve the expandable operations detail
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      tags:
+      - Operations queue
+      security:
+      - visitorSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestDetail'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/operations/returns/{id}/transition/:
+    post:
+      operationId: transitionOperationsReturn
+      description: Transitions SUBMITTED to NEEDS_INFORMATION, APPROVED, or REJECTED.
+        Notes are mandatory when requesting information or rejecting.
+      summary: Apply an operations state transition
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      tags:
+      - Operations queue
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OperationsTransitionRequest'
+            examples:
+              RequestMoreInformation:
+                value:
+                  target_status: NEEDS_INFORMATION
+                  note: Add a fictional serial-number image.
+                summary: Request more information
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/OperationsTransitionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/OperationsTransitionRequest'
+        required: true
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/returns/:
+    get:
+      operationId: listCustomerReturns
+      summary: List returns in the current visitor sandbox
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - Customer returns
+      security:
+      - visitorSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReturnRequestSummaryList'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+    post:
+      operationId: createCustomerReturn
+      summary: Create an empty draft return
+      tags:
+      - Customer returns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnRequestWriteRequest'
+            examples:
+              NewFictionalReturn:
+                value:
+                  order_reference: ORD-90001
+                  customer_name: Taylor Example
+                  customer_email: taylor@example.com
+                summary: New fictional return
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReturnRequestWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReturnRequestWriteRequest'
+        required: true
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/returns/{id}/:
+    get:
+      operationId: retrieveCustomerReturn
+      summary: Retrieve a return with items, evidence, and timeline
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      tags:
+      - Customer returns
+      security:
+      - visitorSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestDetail'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+    patch:
+      operationId: updateCustomerReturn
+      summary: Update mutable fields on a draft or needs-information return
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      tags:
+      - Customer returns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReturnRequestWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReturnRequestWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReturnRequestWriteRequest'
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+    delete:
+      operationId: deleteCustomerDraft
+      summary: Delete a draft return
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      tags:
+      - Customer returns
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/returns/{id}/items/:
+    post:
+      operationId: addCustomerReturnItem
+      summary: Add an item to a mutable return
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      tags:
+      - Customer returns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnItemWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReturnItemWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReturnItemWriteRequest'
+        required: true
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/returns/{id}/items/{item_id}/:
+    patch:
+      operationId: updateCustomerReturnItem
+      summary: Update an item on a mutable return
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque item UUID belonging to the selected return.
+        required: true
+      tags:
+      - Customer returns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReturnItemWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReturnItemWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReturnItemWriteRequest'
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnItem'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+    delete:
+      operationId: deleteCustomerReturnItem
+      summary: Delete an item from a mutable return
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque item UUID belonging to the selected return.
+        required: true
+      tags:
+      - Customer returns
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/returns/{id}/items/{item_id}/evidence/:
+    post:
+      operationId: addCustomerReturnEvidence
+      summary: Attach curated fictional evidence to an item
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque item UUID belonging to the selected return.
+        required: true
+      tags:
+      - Customer returns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvidenceWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EvidenceWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EvidenceWriteRequest'
+        required: true
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evidence'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/returns/{id}/items/{item_id}/evidence/{evidence_id}/:
+    delete:
+      operationId: deleteCustomerReturnEvidence
+      summary: Remove evidence from an item
+      parameters:
+      - in: path
+        name: evidence_id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque evidence UUID belonging to the selected item.
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque item UUID belonging to the selected return.
+        required: true
+      tags:
+      - Customer returns
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '204':
+          description: No response body
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/returns/{id}/submit/:
+    post:
+      operationId: submitCustomerReturn
+      description: Transitions DRAFT to SUBMITTED. For NEEDS_INFORMATION, a non-empty
+        response_note is required.
+      summary: Submit or resubmit a return
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: Opaque return request UUID scoped to the current visitor.
+        required: true
+      tags:
+      - Customer returns
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitReturnRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/SubmitReturnRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/SubmitReturnRequest'
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReturnRequestDetail'
+          description: ''
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '409':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/session/:
+    get:
+      operationId: bootstrapVisitorSession
+      description: Creates or resumes the server-owned visitor sandbox, seeds the
+        fictional dataset once, and sets the session and CSRF cookies. No visitor
+        UUID is exposed.
+      summary: Bootstrap the isolated demo session
+      tags:
+      - Demo session
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VisitorSessionResponse'
+              examples:
+                ReadyDemoSession:
+                  value:
+                    expires_at: '2026-08-01T16:00:00Z'
+                    available_roles:
+                    - CUSTOMER
+                    - OPERATIONS
+                    supported_locales:
+                    - en
+                    - es
+                    dataset_ready: true
+                  summary: Ready demo session
+          description: ''
+components:
+  schemas:
+    APIError:
+      type: object
+      description: Stable error envelope returned by every handled API exception.
+      properties:
+        code:
+          type: string
+          readOnly: true
+        detail:
+          type: string
+          readOnly: true
+        fields:
+          readOnly: true
+      required:
+      - code
+      - detail
+      - fields
+    AvailableRolesEnum:
+      enum:
+      - CUSTOMER
+      - OPERATIONS
+      type: string
+      description: |-
+        * `CUSTOMER` - CUSTOMER
+        * `OPERATIONS` - OPERATIONS
+    DemoResetResponse:
+      type: object
+      properties:
+        reset_at:
+          type: string
+          format: date-time
+          readOnly: true
+        return_count:
+          type: integer
+          readOnly: true
+        message_code:
+          type: string
+          readOnly: true
+      required:
+      - message_code
+      - reset_at
+      - return_count
+    Evidence:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        kind:
+          allOf:
+          - $ref: '#/components/schemas/KindEnum'
+          readOnly: true
+        asset_key:
+          type: string
+          readOnly: true
+        caption:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - asset_key
+      - caption
+      - created_at
+      - id
+      - kind
+    EvidenceWriteRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        kind:
+          $ref: '#/components/schemas/KindEnum'
+        asset_key:
+          type: string
+          minLength: 1
+          pattern: ^[a-z0-9][a-z0-9/_.-]*$
+          maxLength: 160
+        caption:
+          type: string
+          maxLength: 200
+      required:
+      - asset_key
+      - kind
+    KindEnum:
+      enum:
+      - PRODUCT_PHOTO
+      - SERIAL_LABEL
+      - RECEIPT
+      type: string
+      description: |-
+        * `PRODUCT_PHOTO` - Product photo
+        * `SERIAL_LABEL` - Serial label
+        * `RECEIPT` - Receipt
+    OperationsTransitionRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        target_status:
+          $ref: '#/components/schemas/TargetStatusEnum'
+        note:
+          type: string
+          default: ''
+          maxLength: 2000
+      required:
+      - target_status
+    PaginatedReturnRequestSummaryList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnRequestSummary'
+    PatchedReturnItemWriteRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 64
+        product_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        quantity:
+          type: integer
+          minimum: 1
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        details:
+          type: string
+    PatchedReturnRequestWriteRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        order_reference:
+          type: string
+          minLength: 1
+          maxLength: 40
+        customer_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        customer_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+    ReasonEnum:
+      enum:
+      - DAMAGED
+      - WRONG_ITEM
+      - NOT_AS_DESCRIBED
+      - NO_LONGER_NEEDED
+      - OTHER
+      type: string
+      description: |-
+        * `DAMAGED` - Damaged
+        * `WRONG_ITEM` - Wrong item
+        * `NOT_AS_DESCRIBED` - Not as described
+        * `NO_LONGER_NEEDED` - No longer needed
+        * `OTHER` - Other
+    ReturnItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sku:
+          type: string
+          readOnly: true
+        product_name:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          readOnly: true
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        line_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        reason:
+          allOf:
+          - $ref: '#/components/schemas/ReasonEnum'
+          readOnly: true
+        details:
+          type: string
+          readOnly: true
+        evidence:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evidence'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - details
+      - evidence
+      - id
+      - line_total
+      - product_name
+      - quantity
+      - reason
+      - sku
+      - unit_price
+      - updated_at
+    ReturnItemWriteRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        sku:
+          type: string
+          minLength: 1
+          maxLength: 64
+        product_name:
+          type: string
+          minLength: 1
+          maxLength: 160
+        quantity:
+          type: integer
+          minimum: 1
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        details:
+          type: string
+      required:
+      - product_name
+      - quantity
+      - reason
+      - sku
+      - unit_price
+    ReturnRequestDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        reference:
+          type: string
+          readOnly: true
+        order_reference:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        customer_email:
+          type: string
+          format: email
+          readOnly: true
+        item_count:
+          type: integer
+          readOnly: true
+        total_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        currency:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReturnItem'
+          readOnly: true
+        status_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/StatusEvent'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - currency
+      - customer_email
+      - customer_name
+      - id
+      - item_count
+      - items
+      - order_reference
+      - reference
+      - status
+      - status_events
+      - total_value
+      - updated_at
+    ReturnRequestSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        reference:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        item_count:
+          type: integer
+          readOnly: true
+        total_value:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+        currency:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - currency
+      - customer_name
+      - id
+      - item_count
+      - reference
+      - status
+      - total_value
+      - updated_at
+    ReturnRequestWriteRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        order_reference:
+          type: string
+          minLength: 1
+          maxLength: 40
+        customer_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        customer_email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+      required:
+      - customer_email
+      - customer_name
+      - order_reference
+    StatusEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        from_status:
+          type: string
+          readOnly: true
+          nullable: true
+        to_status:
+          type: string
+          readOnly: true
+        actor:
+          type: string
+          readOnly: true
+        note:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - actor
+      - created_at
+      - from_status
+      - id
+      - note
+      - to_status
+    SubmitReturnRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        response_note:
+          type: string
+          default: ''
+          maxLength: 2000
+    SupportedLocalesEnum:
+      enum:
+      - en
+      - es
+      type: string
+      description: |-
+        * `en` - en
+        * `es` - es
+    TargetStatusEnum:
+      enum:
+      - NEEDS_INFORMATION
+      - APPROVED
+      - REJECTED
+      type: string
+      description: |-
+        * `NEEDS_INFORMATION` - NEEDS_INFORMATION
+        * `APPROVED` - APPROVED
+        * `REJECTED` - REJECTED
+    VisitorSessionResponse:
+      type: object
+      properties:
+        expires_at:
+          type: string
+          format: date-time
+          readOnly: true
+        available_roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/AvailableRolesEnum'
+          readOnly: true
+        supported_locales:
+          type: array
+          items:
+            $ref: '#/components/schemas/SupportedLocalesEnum'
+          readOnly: true
+        dataset_ready:
+          type: boolean
+          readOnly: true
+      required:
+      - available_roles
+      - dataset_ready
+      - expires_at
+      - supported_locales
+  securitySchemes:
+    csrfToken:
+      type: apiKey
+      in: header
+      name: X-CSRFToken
+      description: Required with the visitor session for POST, PATCH, and DELETE.
+        Read its value from the non-HttpOnly returnops_csrftoken cookie.
+    visitorSession:
+      type: apiKey
+      in: cookie
+      name: returnops_sessionid
+      description: Opaque HttpOnly Django session cookie. Obtain it from GET /api/v1/session/;
+        visitor UUIDs are never accepted.
+tags:
+- name: Demo session
+  description: Bootstrap and reset the isolated visitor sandbox.
+- name: Customer returns
+  description: Create, edit, submit, and follow returns.
+- name: Operations queue
+  description: Review and transition submitted returns.

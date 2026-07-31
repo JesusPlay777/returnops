@@ -53,6 +53,24 @@ The frontend receives only public browser configuration through
 `NEXT_PUBLIC_*` variables. Django owns database credentials and application
 secrets.
 
+## Browser API boundary
+
+The visitor workflow calls Django directly from a small shared browser client.
+This is deliberate: Django owns the opaque HttpOnly session cookie and CSRF
+protection, while `NEXT_PUBLIC_API_URL` supplies the public API origin at build
+time. Every request includes credentials, and unsafe methods copy the readable
+CSRF cookie into `X-CSRFToken` centrally.
+
+The root layout stays a Server Component. A narrow client-side provider runs
+the idempotent session bootstrap once and exposes `bootstrapping`, `ready`, or
+`error` state to interactive descendants. Concurrent bootstrap calls share one
+promise, and expected API errors retain their HTTP status, stable code, detail,
+and field errors.
+
+Next.js Route Handlers are not used as a general proxy for the returns API.
+The existing platform-health handler remains server-side because it checks
+container connectivity and does not participate in visitor ownership.
+
 ## Health and startup
 
 PostgreSQL must pass `pg_isready` before Django starts. Django applies
