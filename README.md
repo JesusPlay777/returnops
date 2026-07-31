@@ -63,6 +63,13 @@ English and Spanish. Its responsive three-step workflow manages items,
 attaches curated fictional evidence, reviews totals, and submits or resubmits
 the request to operations.
 
+The same screen can switch to the operations role. Its responsive queue uses
+the real operations API to search, filter, order, and paginate non-draft
+requests. Each row expands into the request -> items -> evidence hierarchy,
+and the demo dataset can be reset without affecting any other visitor. The
+full decision view and status-transition controls are the next interface
+slice.
+
 ## Common commands
 
 ```bash

@@ -80,6 +80,14 @@ final action uses the explicit submission command rather than accepting a
 client-selected status; `NEEDS_INFORMATION` resubmissions additionally require
 the operations response note defined by the domain contract.
 
+The operations role is implemented as a second client-side view in the same
+feature module. It consumes the dedicated non-draft operations selectors,
+supports search, status filters, ordering and pagination, and lazily fetches
+aggregate detail when a row is expanded. Desktop renders the hierarchy inside
+the table; mobile replaces rows with expandable request cards. Dataset reset
+continues through the shared CSRF-aware client and remains scoped to the
+current visitor.
+
 Next.js Route Handlers are not used as a general proxy for the returns API.
 The existing platform-health handler remains server-side because it checks
 container connectivity and does not participate in visitor ownership.
@@ -98,22 +106,22 @@ before its container is considered healthy.
   controlled.
 - `DEBUG` defaults to true only for local development.
 - The production container runs Django through Gunicorn.
-- Visitor isolation and secure session-cookie behavior will be implemented in
-  the first domain slice.
+- Visitor isolation and secure session-cookie behavior are enforced by the
+  current domain and API implementation.
 
-## Planned first vertical slice
+## First vertical slice
 
 ```text
 Visitor session
   -> customer creates a draft return
   -> customer adds fictional items and evidence
   -> customer submits the return
-  -> operations sees it in the expandable queue
-  -> operations changes its state
+  -> operations sees it in the expandable queue [implemented]
+  -> operations changes its state [API implemented; interface pending]
   -> customer sees the updated state and timeline
 ```
 
-This slice will establish the real data model and API contract before the
+This slice establishes the real data model and API contract before the
 remaining screens are implemented.
 
 The normative behavior and security boundary for this slice are defined in

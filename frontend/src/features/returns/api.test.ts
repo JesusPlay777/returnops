@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createCustomerReturnsApi } from "@/features/returns/api";
+import {
+  createCustomerReturnsApi,
+  createOperationsReturnsApi,
+} from "@/features/returns/api";
 
 describe("createCustomerReturnsApi", () => {
   it("lists returns with the API pagination parameter names", async () => {
@@ -72,5 +75,75 @@ describe("createCustomerReturnsApi", () => {
       "/api/v1/returns/return-1/items/item-1/evidence/evidence-1/",
       { method: "DELETE" },
     );
+  });
+});
+
+describe("createOperationsReturnsApi", () => {
+  it("serializes search, filters, ordering, and pagination", async () => {
+    const request = vi.fn().mockResolvedValue({ count: 0, results: [] });
+    const operationsApi = createOperationsReturnsApi({ request });
+
+    await operationsApi.list({
+      search: "  RTN-204  ",
+      status: "SUBMITTED",
+      ordering: "-total_value",
+      page: 2,
+      pageSize: 10,
+    });
+
+    expect(request).toHaveBeenCalledWith(
+      "/api/v1/operations/returns/?search=RTN-204&status=SUBMITTED&ordering=-total_value&page=2&page_size=10",
+    );
+  });
+
+  it("rejects page sizes above the operations contract maximum", () => {
+    const request = vi.fn();
+    const operationsApi = createOperationsReturnsApi({ request });
+
+    expect(() => operationsApi.list({ pageSize: 51 })).toThrow(RangeError);
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it("retrieves an expandable operations aggregate", async () => {
+    const request = vi.fn().mockResolvedValue({ id: "return/id" });
+    const operationsApi = createOperationsReturnsApi({ request });
+
+    await operationsApi.retrieve("return/id");
+
+    expect(request).toHaveBeenCalledWith(
+      "/api/v1/operations/returns/return%2Fid/",
+    );
+  });
+
+  it("derives status counts from lightweight filtered requests", async () => {
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce({ count: 4, results: [] })
+      .mockResolvedValueOnce({ count: 2, results: [] })
+      .mockResolvedValueOnce({ count: 7, results: [] })
+      .mockResolvedValueOnce({ count: 1, results: [] });
+    const operationsApi = createOperationsReturnsApi({ request });
+
+    await expect(operationsApi.statusCounts()).resolves.toEqual({
+      SUBMITTED: 4,
+      NEEDS_INFORMATION: 2,
+      APPROVED: 7,
+      REJECTED: 1,
+    });
+    expect(request).toHaveBeenCalledTimes(4);
+  });
+
+  it("resets only the current visitor demo through the shared client", async () => {
+    const request = vi.fn().mockResolvedValue({
+      message_code: "demo_reset_complete",
+    });
+    const operationsApi = createOperationsReturnsApi({ request });
+
+    await operationsApi.resetDemo();
+
+    expect(request).toHaveBeenCalledWith("/api/v1/demo/reset/", {
+      method: "POST",
+      json: {},
+    });
   });
 });

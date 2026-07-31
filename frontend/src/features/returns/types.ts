@@ -105,3 +105,26 @@ export type CustomerReturnsQuery = {
   page?: number;
   pageSize?: number;
 };
+
+export type OperationsReturnStatus = Exclude<ReturnStatus, "DRAFT">;
+
+export type OperationsOrdering =
+  | "-updated_at"
+  | "updated_at"
+  | "-total_value"
+  | "total_value"
+  | "reference";
+
+export type OperationsReturnsQuery = CustomerReturnsQuery & {
+  search?: string;
+  status?: OperationsReturnStatus;
+  ordering?: OperationsOrdering;
+};
+
+export type OperationsStatusCounts = Record<OperationsReturnStatus, number>;
+
+export type DemoResetResponse = {
+  reset_at: string;
+  return_count: number;
+  message_code: "demo_reset_complete";
+};

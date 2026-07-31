@@ -15,6 +15,7 @@ import {
   updateCustomerReturn,
 } from "@/features/returns/api";
 import CustomerReturnWorkflow from "@/features/returns/components/customer-return-workflow";
+import OperationsQueue from "@/features/returns/components/operations-queue";
 import type {
   PaginatedReturns,
   ReturnRequestDetail,
@@ -27,6 +28,7 @@ import { useDemoSession } from "@/providers/demo-session-provider";
 import styles from "./customer-returns-screen.module.css";
 
 type Locale = "en" | "es";
+type DemoRole = "customer" | "operations";
 type ListState =
   | { status: "idle" | "loading" }
   | { status: "ready"; data: PaginatedReturns }
@@ -210,6 +212,7 @@ function errorDetail(error: ApiError, fallback: string): string {
 export default function CustomerReturnsScreen() {
   const session = useDemoSession();
   const [locale, setLocale] = useState<Locale>("en");
+  const [role, setRole] = useState<DemoRole>("customer");
   const [page, setPage] = useState(1);
   const [refreshVersion, setRefreshVersion] = useState(0);
   const [listState, setListState] = useState<ListState>({ status: "idle" });
@@ -323,6 +326,20 @@ export default function CustomerReturnsScreen() {
 
   const sessionReady = session.status === "ready";
 
+  if (role === "operations") {
+    return (
+      <OperationsQueue
+        locale={locale}
+        onLocaleChange={setLocale}
+        onResetCompleted={refresh}
+        onSwitchToCustomer={() => {
+          setRole("customer");
+          refresh();
+        }}
+      />
+    );
+  }
+
   return (
     <div className={styles.appShell}>
       <header className={styles.header}>
@@ -356,9 +373,12 @@ export default function CustomerReturnsScreen() {
         <button className={styles.roleActive} type="button">
           {t.customer}
         </button>
-        <button disabled title={t.operationsPending} type="button">
+        <button
+          disabled={!sessionReady}
+          onClick={() => setRole("operations")}
+          type="button"
+        >
           {t.operations}
-          <span aria-hidden="true">{t.soon}</span>
         </button>
       </div>
 

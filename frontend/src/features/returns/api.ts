@@ -2,8 +2,11 @@ import { apiClient, type ApiClient } from "@/lib/api/client";
 
 import type {
   CustomerReturnsQuery,
+  DemoResetResponse,
   Evidence,
   EvidenceInput,
+  OperationsReturnsQuery,
+  OperationsStatusCounts,
   PaginatedReturns,
   ReturnItem,
   ReturnItemInput,
@@ -162,6 +165,81 @@ export function createCustomerReturnsApi(client: ReturnsClient) {
 
 const customerReturnsApi = createCustomerReturnsApi(apiClient);
 
+const OPERATION_STATUSES = [
+  "SUBMITTED",
+  "NEEDS_INFORMATION",
+  "APPROVED",
+  "REJECTED",
+] as const;
+
+export function createOperationsReturnsApi(client: ReturnsClient) {
+  function list(
+    query: OperationsReturnsQuery = {},
+  ): Promise<PaginatedReturns> {
+    const search = new URLSearchParams();
+    if (query.search?.trim()) {
+      search.set("search", query.search.trim());
+    }
+    if (query.status) {
+      search.set("status", query.status);
+    }
+    if (query.ordering) {
+      search.set("ordering", query.ordering);
+    }
+    if (query.page !== undefined) {
+      requirePositiveInteger(query.page, "page");
+      search.set("page", String(query.page));
+    }
+    if (query.pageSize !== undefined) {
+      requirePositiveInteger(query.pageSize, "pageSize");
+      if (query.pageSize > 50) {
+        throw new RangeError("pageSize cannot exceed 50.");
+      }
+      search.set("page_size", String(query.pageSize));
+    }
+
+    const suffix = search.size > 0 ? `?${search.toString()}` : "";
+    return client.request<PaginatedReturns>(
+      `/api/v1/operations/returns/${suffix}`,
+    );
+  }
+
+  function retrieve(returnId: string): Promise<ReturnRequestDetail> {
+    return client.request<ReturnRequestDetail>(
+      `/api/v1/operations/returns/${encodeURIComponent(returnId)}/`,
+    );
+  }
+
+  async function statusCounts(): Promise<OperationsStatusCounts> {
+    const responses = await Promise.all(
+      OPERATION_STATUSES.map((status) => list({ status, pageSize: 1 })),
+    );
+    return OPERATION_STATUSES.reduce<OperationsStatusCounts>(
+      (counts, status, index) => {
+        counts[status] = responses[index].count;
+        return counts;
+      },
+      {
+        SUBMITTED: 0,
+        NEEDS_INFORMATION: 0,
+        APPROVED: 0,
+        REJECTED: 0,
+      },
+    );
+  }
+
+  function resetDemo(): Promise<DemoResetResponse> {
+    return client.request<DemoResetResponse>("/api/v1/demo/reset/", {
+      method: "POST",
+      json: {},
+    });
+  }
+
+  return { list, retrieve, statusCounts, resetDemo };
+}
+
+const operationsReturnsApi = createOperationsReturnsApi(apiClient);
+
 export const listCustomerReturns = customerReturnsApi.list;
 export const retrieveCustomerReturn = customerReturnsApi.retrieve;
 export const createCustomerReturn = customerReturnsApi.create;
@@ -173,3 +251,7 @@ export const updateCustomerReturnItem = customerReturnsApi.updateItem;
 export const deleteCustomerReturnItem = customerReturnsApi.removeItem;
 export const addCustomerReturnEvidence = customerReturnsApi.addEvidence;
 export const deleteCustomerReturnEvidence = customerReturnsApi.removeEvidence;
+export const listOperationsReturns = operationsReturnsApi.list;
+export const retrieveOperationsReturn = operationsReturnsApi.retrieve;
+export const getOperationsStatusCounts = operationsReturnsApi.statusCounts;
+export const resetDemoDataset = operationsReturnsApi.resetDemo;
