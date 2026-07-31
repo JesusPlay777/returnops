@@ -24,11 +24,27 @@ def env_list(name: str, default: str = "") -> list[str]:
     ]
 
 
+def env_positive_int(name: str, default: int) -> int:
+    """Read a positive integer or fail fast on invalid configuration."""
+    raw_value = os.getenv(name, str(default))
+    try:
+        value = int(raw_value)
+    except ValueError as error:
+        raise ValueError(f"{name} must be a positive integer.") from error
+    if value <= 0:
+        raise ValueError(f"{name} must be a positive integer.")
+    return value
+
+
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "returnops-insecure-local-key")
 DEBUG = env_bool("DJANGO_DEBUG", True)
 ALLOWED_HOSTS = env_list(
     "DJANGO_ALLOWED_HOSTS",
     "localhost,127.0.0.1,backend",
+)
+RETURNOPS_VISITOR_SESSION_TTL_HOURS = env_positive_int(
+    "RETURNOPS_VISITOR_SESSION_TTL_HOURS",
+    24,
 )
 
 INSTALLED_APPS = [
@@ -148,8 +164,11 @@ REST_FRAMEWORK = {
 }
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_NAME = "returnops_sessionid"
+SESSION_COOKIE_AGE = RETURNOPS_VISITOR_SESSION_TTL_HOURS * 60 * 60
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_NAME = "returnops_csrftoken"
 CSRF_COOKIE_SAMESITE = "Lax"
 
 if not DEBUG:
