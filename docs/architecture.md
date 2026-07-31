@@ -67,6 +67,19 @@ the idempotent session bootstrap once and exposes `bootstrapping`, `ready`, or
 promise, and expected API errors retain their HTTP status, stable code, detail,
 and field errors.
 
+The customer interface is organized as a feature module under
+`src/features/returns`. Its contract types, request functions, presentation,
+and tests remain together. The first connected screen lists the visitor's
+paginated returns and exercises real retrieve, create, and update operations;
+all requests still pass through the shared cookie and CSRF-aware client.
+
+Mutable requests open a dedicated three-step client workflow: items, curated
+evidence, and review. Each nested mutation is followed by a fresh aggregate
+read so server-computed counts and monetary totals remain authoritative. The
+final action uses the explicit submission command rather than accepting a
+client-selected status; `NEEDS_INFORMATION` resubmissions additionally require
+the operations response note defined by the domain contract.
+
 Next.js Route Handlers are not used as a general proxy for the returns API.
 The existing platform-health handler remains server-side because it checks
 container connectivity and does not participate in visitor ownership.
@@ -76,7 +89,7 @@ container connectivity and does not participate in visitor ownership.
 PostgreSQL must pass `pg_isready` before Django starts. Django applies
 migrations through its container entrypoint and exposes `/api/health/`. That
 endpoint performs a real database query. Next.js waits for the API health check
-and displays its result on the foundation screen.
+before its container is considered healthy.
 
 ## Security baseline
 

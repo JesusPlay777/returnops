@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ReturnOps",
+  title: "ReturnOps — Returns without the runaround",
   description:
     "A clean-room demonstration of a customer-to-operations returns workflow.",
 };

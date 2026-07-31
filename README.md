@@ -49,13 +49,19 @@ docker compose up --build
 
 Open:
 
-- Web: http://localhost:3000
+- Customer returns demo: http://localhost:3000
 - API health: http://localhost:8000/api/health/
 - API documentation: http://localhost:8000/api/v1/docs/
 - OpenAPI schema: http://localhost:8000/api/v1/schema/
 - Django admin: http://localhost:8000/admin/
 
 The backend container applies Django migrations before starting.
+
+The customer screen uses the real visitor-isolated API. It supports paginated
+listing, request detail, draft creation, and editing of mutable requests in
+English and Spanish. Its responsive three-step workflow manages items,
+attaches curated fictional evidence, reviews totals, and submits or resubmits
+the request to operations.
 
 ## Common commands
 
