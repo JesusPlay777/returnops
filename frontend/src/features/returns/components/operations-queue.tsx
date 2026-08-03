@@ -27,6 +27,7 @@ import type {
 import { ApiError, toApiError } from "@/lib/api/client";
 
 import styles from "./operations-queue.module.css";
+import OperationsReview from "./operations-review";
 
 type Locale = "en" | "es";
 type QueueState =
@@ -91,6 +92,7 @@ const copy = {
     fullPending: "Full operations review is the next interface slice",
     detailError: "We could not open this request.",
     resetComplete: "Demo data restored",
+    decisionComplete: "Operations decision saved",
   },
   es: {
     role: "Operaciones",
@@ -139,6 +141,7 @@ const copy = {
     fullPending: "La revisión operacional completa es el siguiente bloque",
     detailError: "No pudimos abrir esta solicitud.",
     resetComplete: "Datos de demostración restaurados",
+    decisionComplete: "Decisión operacional guardada",
   },
 } as const;
 
@@ -225,6 +228,7 @@ export default function OperationsQueue({
   const [details, setDetails] = useState<Record<string, ExpandedState>>({});
   const [resetting, setResetting] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [review, setReview] = useState<ReturnRequestDetail | null>(null);
   const initializedExpansion = useRef(false);
   const t = copy[locale];
 
@@ -358,6 +362,7 @@ export default function OperationsQueue({
       setPage(1);
       setExpanded(new Set());
       setDetails({});
+      setReview(null);
       initializedExpansion.current = false;
       setNotice(t.resetComplete);
       onResetCompleted();
@@ -374,6 +379,16 @@ export default function OperationsQueue({
     } finally {
       setResetting(false);
     }
+  }
+
+  function handleTransitioned(updated: ReturnRequestDetail) {
+    setReview(updated);
+    setDetails((current) => ({
+      ...current,
+      [updated.id]: { status: "ready", data: updated },
+    }));
+    setNotice(t.decisionComplete);
+    refresh();
   }
 
   return (
@@ -483,6 +498,7 @@ export default function OperationsQueue({
                   details={details}
                   expanded={expanded}
                   locale={locale}
+                  onOpenReview={setReview}
                   onToggle={toggleExpanded}
                   requests={queue.data.results}
                 />
@@ -490,6 +506,7 @@ export default function OperationsQueue({
                   details={details}
                   expanded={expanded}
                   locale={locale}
+                  onOpenReview={setReview}
                   onToggle={toggleExpanded}
                   requests={queue.data.results}
                 />
@@ -504,6 +521,15 @@ export default function OperationsQueue({
         </main>
       </div>
 
+      {review && (
+        <OperationsReview
+          key={`${review.id}:${review.status}`}
+          locale={locale}
+          onClose={() => setReview(null)}
+          onTransitioned={handleTransitioned}
+          request={review}
+        />
+      )}
       {notice && <div className={styles.toast} role="status">✓ {notice}<button aria-label="Close" onClick={() => setNotice(null)} type="button">×</button></div>}
     </div>
   );
@@ -513,12 +539,14 @@ function DesktopQueue({
   details,
   expanded,
   locale,
+  onOpenReview,
   onToggle,
   requests,
 }: {
   details: Record<string, ExpandedState>;
   expanded: Set<string>;
   locale: Locale;
+  onOpenReview: (request: ReturnRequestDetail) => void;
   onToggle: (returnId: string) => void;
   requests: ReturnRequestSummary[];
 }) {
@@ -539,7 +567,7 @@ function DesktopQueue({
                 <td>{formatDate(request.updated_at, locale)}</td>
               </tr>
               {expanded.has(request.id) && (
-                <tr className={styles.expandedRow}><td colSpan={6}><ExpandedRequest locale={locale} state={details[request.id]} /></td></tr>
+                <tr className={styles.expandedRow}><td colSpan={6}><ExpandedRequest locale={locale} onOpenReview={onOpenReview} state={details[request.id]} /></td></tr>
               )}
             </Fragment>
           ))}
@@ -550,7 +578,7 @@ function DesktopQueue({
 }
 
 function MobileQueue(props: Parameters<typeof DesktopQueue>[0]) {
-  const { details, expanded, locale, onToggle, requests } = props;
+  const { details, expanded, locale, onOpenReview, onToggle, requests } = props;
   const t = copy[locale];
   return (
     <div className={styles.mobileQueue}>
@@ -564,20 +592,28 @@ function MobileQueue(props: Parameters<typeof DesktopQueue>[0]) {
             <span className={styles.mobileCustomer}>{request.customer_name}</span>
             <small>{request.item_count} {t.items.toLowerCase()} · {formatMoney(request.total_value, request.currency, locale)} · {formatDate(request.updated_at, locale)}</small>
           </button>
-          {expanded.has(request.id) && <ExpandedRequest locale={locale} state={details[request.id]} />}
+          {expanded.has(request.id) && <ExpandedRequest locale={locale} onOpenReview={onOpenReview} state={details[request.id]} />}
         </article>
       ))}
     </div>
   );
 }
 
-function ExpandedRequest({ locale, state }: { locale: Locale; state?: ExpandedState }) {
+function ExpandedRequest({
+  locale,
+  onOpenReview,
+  state,
+}: {
+  locale: Locale;
+  onOpenReview: (request: ReturnRequestDetail) => void;
+  state?: ExpandedState;
+}) {
   const t = copy[locale];
   if (!state || state.status === "loading") return <QueueMessage loading message={t.loading} compact />;
   if (state.status === "error") return <div className={styles.inlineError}>{t.detailError}: {state.error.message}</div>;
   return (
     <div className={styles.expandedPanel}>
-      <div className={styles.expandedHeader}><strong>{t.returnItems(state.data.item_count)}</strong><button disabled title={t.fullPending} type="button">{t.openFull} →</button></div>
+      <div className={styles.expandedHeader}><strong>{t.returnItems(state.data.item_count)}</strong><button onClick={() => onOpenReview(state.data)} type="button">{t.openFull} →</button></div>
       <div className={styles.hierarchy}>
         {state.data.items.map((item) => (
           <article className={styles.expandedItem} key={item.id}>

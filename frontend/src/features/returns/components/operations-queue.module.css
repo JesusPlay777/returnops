@@ -51,8 +51,8 @@
 .expandedPanel { overflow: hidden; border: 1px solid #cddbd8; border-radius: 10px; background: #fff; }
 .expandedHeader { display: flex; min-height: 48px; padding: 0 18px; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--color-border); }
 .expandedHeader strong { font-size: 10px; letter-spacing: .045em; text-transform: uppercase; }
-.expandedHeader button { border: 0; color: var(--color-primary-dark); background: transparent; font-size: 11px; font-weight: 700; }
-.expandedHeader button:disabled { opacity: .62; }
+.expandedHeader button { border: 0; color: var(--color-primary-dark); background: transparent; cursor: pointer; font-size: 11px; font-weight: 700; }
+.expandedHeader button:hover { text-decoration: underline; text-underline-offset: 3px; }
 .hierarchy { position: relative; padding: 0 18px 0 48px; }
 .hierarchy::before { position: absolute; top: 0; bottom: 0; left: 27px; width: 1px; background: #a9c8c4; content: ""; }
 .expandedItem { position: relative; display: grid; min-height: 84px; padding: 14px 0; grid-template-columns: 46px minmax(0,1fr) auto; gap: 14px; align-items: center; border-bottom: 1px solid #e8edeb; }

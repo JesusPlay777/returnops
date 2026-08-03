@@ -9,6 +9,7 @@ import type {
   EvidenceInput,
   OperationsReturnsQuery,
   OperationsStatusCounts,
+  OperationsTransitionInput,
   PaginatedReturns,
   ReturnItem,
   ReturnItemUpdate,
@@ -194,6 +195,19 @@ export function createOperationsReturnsApi(client: ReturnsClient) {
     );
   }
 
+  function transition(
+    returnId: string,
+    input: OperationsTransitionInput,
+  ): Promise<ReturnRequestDetail> {
+    return client.request<ReturnRequestDetail>(
+      `/api/v1/operations/returns/${encodeURIComponent(returnId)}/transition/`,
+      {
+        method: "POST",
+        json: input,
+      },
+    );
+  }
+
   async function statusCounts(): Promise<OperationsStatusCounts> {
     const responses = await Promise.all(
       OPERATION_STATUSES.map((status) => list({ status, pageSize: 1 })),
@@ -219,7 +233,7 @@ export function createOperationsReturnsApi(client: ReturnsClient) {
     });
   }
 
-  return { list, retrieve, statusCounts, resetDemo };
+  return { list, retrieve, transition, statusCounts, resetDemo };
 }
 
 const operationsReturnsApi = createOperationsReturnsApi(apiClient);
@@ -236,5 +250,6 @@ export const addCustomerReturnEvidence = customerReturnsApi.addEvidence;
 export const deleteCustomerReturnEvidence = customerReturnsApi.removeEvidence;
 export const listOperationsReturns = operationsReturnsApi.list;
 export const retrieveOperationsReturn = operationsReturnsApi.retrieve;
+export const transitionOperationsReturn = operationsReturnsApi.transition;
 export const getOperationsStatusCounts = operationsReturnsApi.statusCounts;
 export const resetDemoDataset = operationsReturnsApi.resetDemo;

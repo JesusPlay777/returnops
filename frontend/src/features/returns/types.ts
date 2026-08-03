@@ -128,6 +128,16 @@ export type CustomerReturnsQuery = {
 
 export type OperationsReturnStatus = Exclude<ReturnStatus, "DRAFT">;
 
+export type OperationsTransitionStatus =
+  | "NEEDS_INFORMATION"
+  | "APPROVED"
+  | "REJECTED";
+
+export type OperationsTransitionInput = {
+  target_status: OperationsTransitionStatus;
+  note?: string;
+};
+
 export type OperationsOrdering =
   | "-updated_at"
   | "updated_at"

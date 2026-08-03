@@ -135,6 +135,25 @@ describe("createOperationsReturnsApi", () => {
     );
   });
 
+  it("posts a typed decision to the encoded operations transition path", async () => {
+    const request = vi.fn().mockResolvedValue({ status: "NEEDS_INFORMATION" });
+    const operationsApi = createOperationsReturnsApi({ request });
+    const input = {
+      target_status: "NEEDS_INFORMATION" as const,
+      note: "Please add the fictional serial-number image.",
+    };
+
+    await operationsApi.transition("return/id", input);
+
+    expect(request).toHaveBeenCalledWith(
+      "/api/v1/operations/returns/return%2Fid/transition/",
+      {
+        method: "POST",
+        json: input,
+      },
+    );
+  });
+
   it("derives status counts from lightweight filtered requests", async () => {
     const request = vi
       .fn()
