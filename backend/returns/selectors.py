@@ -118,10 +118,16 @@ def _detail_queryset(visitor: VisitorSession):
         "demo_order_item",
     ).order_by(
         "created_at",
+        "sku",
+        "id",
     ).prefetch_related(
         Prefetch(
             "evidence",
-            queryset=Evidence.objects.order_by("created_at"),
+            queryset=Evidence.objects.order_by(
+                "created_at",
+                "asset_key",
+                "id",
+            ),
         )
     )
     event_queryset = StatusEvent.objects.order_by("created_at")

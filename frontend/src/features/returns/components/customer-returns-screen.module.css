@@ -147,6 +147,10 @@
   align-items: end;
 }
 
+.hero > div {
+  min-width: 0;
+}
+
 .eyebrow {
   color: var(--color-primary);
   font-size: 11px;
@@ -316,6 +320,10 @@
 
 .tableFrame tbody tr:hover {
   background: #f8fbfa;
+}
+
+.mobileReturns {
+  display: none;
 }
 
 .referenceButton,
@@ -1039,7 +1047,7 @@
   }
 
   .hero h1 {
-    font-size: clamp(43px, 14vw, 61px);
+    font-size: clamp(40px, 12.5vw, 56px);
   }
 
   .returnsSection,
@@ -1055,7 +1063,57 @@
   }
 
   .tableFrame {
+    display: none;
+  }
+
+  .mobileReturns {
+    display: grid;
     margin-top: 26px;
+    gap: 10px;
+  }
+
+  .mobileReturnCard {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: 14px;
+    background: var(--color-surface);
+  }
+
+  .mobileReturnCard > button {
+    display: grid;
+    width: 100%;
+    padding: 17px;
+    gap: 10px;
+    border: 0;
+    color: var(--color-ink);
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .mobileReturnTop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .mobileReturnTop > strong {
+    color: var(--color-primary);
+    font-size: 15px;
+  }
+
+  .mobileCustomerName {
+    font-size: 13px;
+  }
+
+  .mobileReturnMeta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    line-height: 1.45;
   }
 
   .pagination {

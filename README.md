@@ -68,8 +68,9 @@ The same screen can switch to the operations role. Its responsive queue uses
 the real operations API to search, filter, order, and paginate non-draft
 requests. Each row expands into the request -> items -> evidence hierarchy,
 and the demo dataset can be reset without affecting any other visitor. The
-full decision view and status-transition controls are the next interface
-slice.
+full decision view lets operations request information, approve, or reject a
+return. A customer can answer a request for information and resubmit it through
+the same isolated workflow.
 
 ## Common commands
 
@@ -89,6 +90,21 @@ docker compose exec backend python manage.py createsuperuser
 # Stop the platform without deleting data
 docker compose down
 ```
+
+## Browser end-to-end validation
+
+With the Docker services healthy, run Playwright from WSL:
+
+```bash
+cd frontend
+PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium  # first run only
+npm run test:e2e
+```
+
+The browser suite validates the complete customer -> operations -> customer
+lifecycle and compares approved responsive screenshots. See
+[the testing guide](docs/testing.md) for focused commands, headed diagnosis,
+and the snapshot review policy.
 
 To reset only the local PostgreSQL data, explicitly remove the Compose volume:
 
@@ -116,3 +132,4 @@ The application itself uses PostgreSQL in Docker and in deployed environments.
 - [OpenAPI schema snapshot](docs/openapi.yaml)
 - [Returns domain and visitor-isolation contract](docs/returns-domain-contract.md)
 - [ADR 0001: synchronous core](docs/decisions/0001-synchronous-core.md)
+- [Automated testing](docs/testing.md)

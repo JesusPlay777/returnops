@@ -113,6 +113,17 @@ class ReturnSelectorTests(TestCase):
 
         self.assertEqual(detail.item_count, 2)
         self.assertEqual(str(detail.total_value), "774.00")
+        self.assertEqual(
+            [item.sku for item in items],
+            ["DMO-ARM-01", "DMO-CAM-02"],
+        )
+        self.assertEqual(
+            [evidence.asset_key for evidence in items[0].evidence.all()],
+            [
+                "evidence/rtn-204-1-product_photo.webp",
+                "evidence/rtn-204-1-serial_label.webp",
+            ],
+        )
         self.assertEqual(evidence_count, 3)
         self.assertEqual(len(events), 2)
 

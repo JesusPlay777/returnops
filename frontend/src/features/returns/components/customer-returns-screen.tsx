@@ -520,6 +520,42 @@ export default function CustomerReturnsScreen() {
                 </table>
               </div>
 
+              <div className={styles.mobileReturns} aria-label={t.requests}>
+                {listState.data.results.map((returnRequest) => (
+                  <article className={styles.mobileReturnCard} key={returnRequest.id}>
+                    <button
+                      aria-label={returnRequest.reference}
+                      onClick={() => openDetail(returnRequest.id)}
+                      type="button"
+                    >
+                      <span className={styles.mobileReturnTop}>
+                        <strong>{returnRequest.reference}</strong>
+                        <StatusBadge
+                          label={statusCopy[locale][returnRequest.status]}
+                          status={returnRequest.status}
+                        />
+                      </span>
+                      <strong className={styles.mobileCustomerName}>
+                        {returnRequest.customer_name}
+                      </strong>
+                      <span className={styles.mobileReturnMeta}>
+                        <span>{returnRequest.item_count} {t.items.toLowerCase()}</span>
+                        <span>
+                          {formatMoney(
+                            returnRequest.total_value,
+                            returnRequest.currency,
+                            locale,
+                          )}
+                        </span>
+                        <time dateTime={returnRequest.updated_at}>
+                          {formatDate(returnRequest.updated_at, locale)}
+                        </time>
+                      </span>
+                    </button>
+                  </article>
+                ))}
+              </div>
+
               <div className={styles.pagination}>
                 <button
                   disabled={!listState.data.previous}
