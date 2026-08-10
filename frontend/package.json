@@ -20,11 +20,14 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.2.12",
+    "postcss": "8.5.25",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5",
     "vitest": "4.1.10"
   },
