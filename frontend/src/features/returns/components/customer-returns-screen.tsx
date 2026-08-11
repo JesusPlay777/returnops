@@ -15,7 +15,12 @@ import {
   retrieveCustomerReturn,
 } from "@/features/returns/api";
 import CustomerReturnWorkflow from "@/features/returns/components/customer-return-workflow";
+import { buttonStyles, fieldStyles } from "@/features/returns/components/control-styles";
+import { DemoBadge } from "@/features/returns/components/demo-badge";
+import { LoadingSpinner } from "@/features/returns/components/loading-spinner";
+import { LocaleSwitch } from "@/features/returns/components/locale-switch";
 import OperationsQueue from "@/features/returns/components/operations-queue";
+import { ReturnStatusBadge } from "@/features/returns/components/return-status-badge";
 import type {
   CatalogReturnCreateInput,
   DemoOrder,
@@ -358,23 +363,12 @@ export default function CustomerReturnsScreen() {
         </a>
 
         <div className={styles.headerTools}>
-          <span className={styles.demoBadge}>{t.demo}</span>
-          <div className={styles.localeSwitch} aria-label="Language">
-            <button
-              className={locale === "en" ? styles.localeActive : undefined}
-              onClick={() => setLocale("en")}
-              type="button"
-            >
-              EN
-            </button>
-            <button
-              className={locale === "es" ? styles.localeActive : undefined}
-              onClick={() => setLocale("es")}
-              type="button"
-            >
-              ES
-            </button>
-          </div>
+          <DemoBadge variant="customer">{t.demo}</DemoBadge>
+          <LocaleSwitch
+            locale={locale}
+            onLocaleChange={setLocale}
+            variant="customer"
+          />
         </div>
       </header>
 
@@ -398,7 +392,7 @@ export default function CustomerReturnsScreen() {
             <h1>{t.title}</h1>
             <p className={styles.intro}>{t.intro}</p>
             <button
-              className={styles.primaryButton}
+              className={`${buttonStyles.customerPrimary} mt-[34px]`}
               disabled={!sessionReady}
               onClick={() => setEditor({ mode: "create" })}
               type="button"
@@ -471,7 +465,7 @@ export default function CustomerReturnsScreen() {
                       <th>{t.value}</th>
                       <th>{t.status}</th>
                       <th>{t.updated}</th>
-                      <th><span className={styles.srOnly}>{t.view}</span></th>
+                      <th><span className="sr-only">{t.view}</span></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -510,7 +504,7 @@ export default function CustomerReturnsScreen() {
                             onClick={() => openDetail(returnRequest.id)}
                             type="button"
                           >
-                            <span className={styles.srOnly}>{t.view}</span>
+                            <span className="sr-only">{t.view}</span>
                             <span aria-hidden="true">→</span>
                           </button>
                         </td>
@@ -558,6 +552,7 @@ export default function CustomerReturnsScreen() {
 
               <div className={styles.pagination}>
                 <button
+                  className={buttonStyles.customerPagination}
                   disabled={!listState.data.previous}
                   onClick={() => {
                     setListState({ status: "loading" });
@@ -569,6 +564,7 @@ export default function CustomerReturnsScreen() {
                 </button>
                 <span>{t.page(page, totalPages)}</span>
                 <button
+                  className={`${buttonStyles.customerPagination} justify-self-end`}
                   disabled={!listState.data.next}
                   onClick={() => {
                     setListState({ status: "loading" });
@@ -636,7 +632,7 @@ export default function CustomerReturnsScreen() {
 function LoadingState({ message }: { message: string }) {
   return (
     <div className={styles.loadingState} role="status">
-      <span className={styles.spinner} aria-hidden="true" />
+      <LoadingSpinner />
       {message}
     </div>
   );
@@ -659,17 +655,16 @@ function ErrorState({
         <strong>{title}</strong>
         <p>{detail}</p>
       </div>
-      <button onClick={onRetry} type="button">{label}</button>
+      <button className={buttonStyles.customerSecondary} onClick={onRetry} type="button">{label}</button>
     </div>
   );
 }
 
 function StatusBadge({ label, status }: { label: string; status: ReturnStatus }) {
   return (
-    <span className={styles.statusBadge} data-status={status}>
-      <span aria-hidden="true" />
+    <ReturnStatusBadge status={status} variant="customer">
       {label}
-    </span>
+    </ReturnStatusBadge>
   );
 }
 
@@ -703,7 +698,7 @@ function ReturnDetail({
             <strong>{t.detailError}</strong>
             <p>{errorDetail(state.error, t.detailError)}</p>
           </div>
-          <button onClick={onClose} type="button">{t.close}</button>
+          <button className={buttonStyles.customerSecondary} onClick={onClose} type="button">{t.close}</button>
         </div>
       </section>
     );
@@ -729,11 +724,11 @@ function ReturnDetail({
         </div>
         <div className={styles.detailActions}>
           {editable && (
-            <button onClick={() => onContinue(data)} type="button">
+            <button className={buttonStyles.customerSecondary} onClick={() => onContinue(data)} type="button">
               {t.continueReturn}
             </button>
           )}
-          <button className={styles.iconButton} onClick={onClose} type="button" aria-label={t.close}>×</button>
+          <button className={buttonStyles.customerIcon} onClick={onClose} type="button" aria-label={t.close}>×</button>
         </div>
       </div>
 
@@ -958,7 +953,7 @@ function ReturnEditor({
             <h2 id="return-editor-title">{t.createTitle}</h2>
             <p>{t.formIntro}</p>
           </div>
-          <button className={styles.iconButton} onClick={onCancel} type="button" aria-label={t.close}>×</button>
+          <button className={buttonStyles.customerIcon} onClick={onCancel} type="button" aria-label={t.close}>×</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -966,6 +961,7 @@ function ReturnEditor({
             <span>{t.orderSearch}</span>
             <input
               autoFocus
+              className={fieldStyles.customerSearch}
               maxLength={40}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t.orderSearchPlaceholder}
@@ -975,7 +971,7 @@ function ReturnEditor({
 
           {orders === null && !loadError && (
             <div className={styles.catalogMessage} role="status">
-              <span className={styles.spinner} aria-hidden="true" />
+              <LoadingSpinner />
               {t.loadingOrders}
             </div>
           )}
@@ -1030,6 +1026,7 @@ function ReturnEditor({
                       <label className={styles.catalogItemHeader}>
                         <input
                           checked={selection?.selected ?? false}
+                          className={fieldStyles.customerCheckbox}
                           onChange={(event) => updateSelection(item.id, { selected: event.target.checked })}
                           type="checkbox"
                         />
@@ -1041,6 +1038,7 @@ function ReturnEditor({
                           <label>
                             <span>{t.quantity}</span>
                             <input
+                              className={fieldStyles.customerCatalogInput}
                               max={item.quantity}
                               min="1"
                               onChange={(event) => updateSelection(item.id, { quantity: Number(event.target.value) })}
@@ -1052,6 +1050,7 @@ function ReturnEditor({
                           <label>
                             <span>{t.reason}</span>
                             <select
+                              className={fieldStyles.customerCatalogSelect}
                               onChange={(event) => updateSelection(item.id, { reason: event.target.value as ReturnReason })}
                               value={selection.reason}
                             >
@@ -1063,6 +1062,7 @@ function ReturnEditor({
                           <label className={styles.catalogDetails}>
                             <span>{t.details}</span>
                             <input
+                              className={fieldStyles.customerCatalogInput}
                               maxLength={2000}
                               onChange={(event) => updateSelection(item.id, { details: event.target.value })}
                               value={selection.details}
@@ -1085,9 +1085,9 @@ function ReturnEditor({
           )}
 
           <div className={styles.formActions}>
-            <button disabled={saving} onClick={onCancel} type="button">{t.cancel}</button>
+            <button className={buttonStyles.customerSecondary} disabled={saving} onClick={onCancel} type="button">{t.cancel}</button>
             <button
-              className={styles.primaryButton}
+              className={buttonStyles.customerPrimaryCompact}
               disabled={saving || !selectedOrder || selectedCount === 0}
               type="submit"
             >

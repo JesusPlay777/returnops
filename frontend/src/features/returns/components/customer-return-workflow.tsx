@@ -29,6 +29,8 @@ import {
 import { ApiError, toApiError } from "@/lib/api/client";
 
 import styles from "./customer-return-workflow.module.css";
+import { buttonStyles, fieldStyles } from "./control-styles";
+import { DemoBadge } from "./demo-badge";
 
 type Locale = "en" | "es";
 type Step = 1 | 2 | 3;
@@ -344,13 +346,14 @@ export default function CustomerReturnWorkflow({
       >
         <header className={styles.header}>
           <div className={styles.brand}>ReturnOps</div>
-          <span className={styles.demoBadge}>Demo</span>
+          <DemoBadge variant="workflow">Demo</DemoBadge>
           <span className={styles.locale}>{locale.toUpperCase()}</span>
         </header>
 
         <div className={styles.workflowHeader}>
           <button
             aria-label={t.close}
+            className={buttonStyles.workflowHeaderIcon}
             disabled={busy}
             onClick={() => onClose(returnRequest)}
             type="button"
@@ -426,6 +429,7 @@ export default function CustomerReturnWorkflow({
 
         <footer className={styles.footer}>
           <button
+            className={buttonStyles.workflowFooterSecondary}
             disabled={busy}
             onClick={() => (step === 1 ? onClose(returnRequest) : goToStep((step - 1) as Step))}
             type="button"
@@ -434,7 +438,7 @@ export default function CustomerReturnWorkflow({
           </button>
           {step < 3 ? (
             <button
-              className={styles.primaryButton}
+              className={buttonStyles.workflowPrimary}
               disabled={busy || returnRequest.items.length === 0}
               onClick={() => goToStep((step + 1) as Step)}
               type="button"
@@ -443,7 +447,7 @@ export default function CustomerReturnWorkflow({
             </button>
           ) : (
             <button
-              className={styles.primaryButton}
+              className={buttonStyles.workflowPrimary}
               disabled={!canSubmit}
               onClick={submitRequest}
               type="button"
@@ -550,12 +554,13 @@ function ItemForm({
           <h2>{t.editItem}</h2>
           <p>{editor.item.sku} · {editor.item.product_name} · {formatMoney(editor.item.unit_price, "USD", locale)}</p>
         </div>
-        <button disabled={busy} onClick={onCancel} type="button">×</button>
+        <button className={buttonStyles.workflowFormIcon} disabled={busy} onClick={onCancel} type="button">×</button>
       </div>
       <div className={styles.formGrid}>
         <label>
           <span>{t.quantity}</span>
           <input
+            className={fieldStyles.workflowInput}
             max={editor.item.max_quantity}
             min="1"
             onChange={(event) => setForm({ ...form, quantity: Number(event.target.value) })}
@@ -567,6 +572,7 @@ function ItemForm({
         <label>
           <span>{t.reason}</span>
           <select
+            className={fieldStyles.workflowSelect}
             onChange={(event) => setForm({ ...form, reason: event.target.value as ReturnReason })}
             value={form.reason}
           >
@@ -578,6 +584,7 @@ function ItemForm({
         <label className={styles.fullField}>
           <span>{t.details}</span>
           <textarea
+            className={fieldStyles.workflowTextarea}
             onChange={(event) => setForm({ ...form, details: event.target.value })}
             placeholder={t.detailsPlaceholder}
             rows={3}
@@ -586,8 +593,8 @@ function ItemForm({
         </label>
       </div>
       <div className={styles.formActions}>
-        <button disabled={busy} onClick={onCancel} type="button">{t.cancel}</button>
-        <button className={styles.primaryButton} disabled={busy} type="submit">
+        <button className={buttonStyles.workflowSecondary} disabled={busy} onClick={onCancel} type="button">{t.cancel}</button>
+        <button className={buttonStyles.workflowPrimary} disabled={busy} type="submit">
           {busy ? t.saving : t.saveItem}
         </button>
       </div>
@@ -710,6 +717,7 @@ function ReviewStep({
           <strong>{t.responseNote}</strong>
           <span>{t.responseNoteHelp}</span>
           <textarea
+            className={fieldStyles.workflowTextarea}
             maxLength={2000}
             onChange={(event) => onResponseNote(event.target.value)}
             placeholder={t.responseNotePlaceholder}

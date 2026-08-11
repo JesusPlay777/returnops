@@ -59,25 +59,7 @@
   font-size: 11px;
 }
 
-.closeButton {
-  display: grid;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 auto;
-  place-items: center;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  color: var(--color-ink);
-  background: #fff;
-  cursor: pointer;
-  font-size: 24px;
-}
-
-.closeButton:focus-visible,
-.decisionOptions button:focus-visible,
-.continueButton:focus-visible,
-.confirmation button:focus-visible,
-.noteField textarea:focus {
+.decisionOptions button:focus-visible {
   outline: 3px solid rgb(15 118 110 / 18%);
   outline-offset: 2px;
 }
@@ -269,36 +251,8 @@
 .noteField { margin-top: 18px; }
 .noteField label { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 9px; font-weight: 750; }
 .noteField label span { color: var(--color-text-secondary); font-size: 7px; font-weight: 600; }
-.noteField textarea {
-  width: 100%;
-  margin-top: 7px;
-  padding: 11px;
-  resize: vertical;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  outline: none;
-  color: var(--color-ink);
-  background: #fff;
-  font: inherit;
-  font-size: 10px;
-  line-height: 1.5;
-}
-.noteField textarea[aria-invalid="true"] { border-color: var(--color-danger); }
 .noteMeta { display: flex; min-height: 18px; margin-top: 4px; justify-content: space-between; gap: 10px; color: var(--color-danger); font-size: 8px; }
 .noteMeta small { margin-left: auto; color: var(--color-text-secondary); }
-.continueButton {
-  width: 100%;
-  min-height: 44px;
-  margin-top: 14px;
-  border: 0;
-  border-radius: 8px;
-  color: #fff;
-  background: var(--color-primary);
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 760;
-}
-.continueButton:disabled { cursor: not-allowed; opacity: .45; }
 
 .confirmation,
 .actionError {
@@ -313,9 +267,6 @@
 .confirmation > p,
 .actionError > span { display: block; margin-top: 5px; color: var(--color-text-secondary); font-size: 8px; line-height: 1.45; }
 .confirmation > div { display: grid; margin-top: 12px; grid-template-columns: 1fr 1.35fr; gap: 7px; }
-.confirmation button { min-height: 38px; border: 1px solid var(--color-border); border-radius: 7px; background: #fff; cursor: pointer; font-size: 8px; font-weight: 730; }
-.confirmation button:last-child { border-color: var(--color-primary); color: #fff; background: var(--color-primary); }
-.confirmation button:disabled { cursor: wait; opacity: .55; }
 .actionError { border-color: #efc3be; background: #fff8f7; }
 .actionError > strong { color: var(--color-danger); }
 
@@ -335,23 +286,6 @@
 .readOnlyPanel[data-status="REJECTED"] { border-color: #efc3be; background: var(--color-danger-soft); }
 .readOnlyPanel[data-status="REJECTED"] .readOnlyIcon,
 .readOnlyPanel[data-status="REJECTED"] > p { color: var(--color-danger); }
-
-.statusBadge {
-  display: inline-flex;
-  min-height: 27px;
-  padding: 0 9px;
-  align-items: center;
-  border: 1px solid #b8d9d4;
-  border-radius: 6px;
-  color: var(--color-primary-dark);
-  background: var(--color-primary-soft);
-  font-size: 8px;
-  font-weight: 780;
-  text-transform: uppercase;
-}
-.statusBadge[data-status="NEEDS_INFORMATION"] { border-color: #efd08a; color: var(--color-warning); background: var(--color-warning-soft); }
-.statusBadge[data-status="APPROVED"] { border-color: #bbd9c6; color: var(--color-success); background: var(--color-success-soft); }
-.statusBadge[data-status="REJECTED"] { border-color: #efc3be; color: var(--color-danger); background: var(--color-danger-soft); }
 
 @media (max-width: 900px) {
   .backdrop { padding: 14px; }

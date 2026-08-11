@@ -36,16 +36,6 @@
   letter-spacing: -0.04em;
 }
 
-.demoBadge {
-  padding: 5px 8px;
-  border: 1px solid rgb(255 255 255 / 42%);
-  border-radius: 6px;
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
 .locale {
   padding-left: 14px;
   border-left: 1px solid rgb(255 255 255 / 30%);
@@ -62,17 +52,6 @@
   align-items: center;
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
-}
-
-.workflowHeader button {
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 50%;
-  color: var(--color-ink);
-  background: transparent;
-  cursor: pointer;
-  font-size: 21px;
 }
 
 .workflowHeader strong {
@@ -163,26 +142,6 @@
   color: var(--color-text-secondary);
   font-size: 13px;
   line-height: 1.6;
-}
-
-.addButton,
-.primaryButton {
-  min-height: 44px;
-  padding: 0 17px;
-  border: 1px solid var(--color-primary);
-  border-radius: 10px;
-  color: var(--color-surface);
-  background: var(--color-primary);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 720;
-  white-space: nowrap;
-}
-
-.addButton:disabled,
-.primaryButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
 }
 
 .itemList,
@@ -318,16 +277,6 @@
   font-weight: 680;
 }
 
-.formHeading button {
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  background: var(--color-surface);
-  cursor: pointer;
-  font-size: 18px;
-}
-
 .formGrid {
   display: grid;
   margin-top: 22px;
@@ -344,40 +293,6 @@
   font-weight: 700;
 }
 
-.formGrid input,
-.formGrid select,
-.formGrid textarea,
-.responseNote textarea {
-  width: 100%;
-  border: 1px solid var(--color-border);
-  border-radius: 9px;
-  outline: none;
-  color: var(--color-ink);
-  background: var(--color-surface);
-  font-size: 12px;
-}
-
-.formGrid input,
-.formGrid select {
-  height: 44px;
-  padding: 0 12px;
-}
-
-.formGrid textarea,
-.responseNote textarea {
-  padding: 12px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-.formGrid input:focus,
-.formGrid select:focus,
-.formGrid textarea:focus,
-.responseNote textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgb(15 118 110 / 11%);
-}
-
 .wideField {
   grid-column: span 2;
 }
@@ -389,17 +304,6 @@
 .formActions {
   margin-top: 20px;
   justify-content: flex-end;
-}
-
-.formActions > button:first-child {
-  min-height: 42px;
-  padding: 0 16px;
-  border: 1px solid var(--color-border);
-  border-radius: 9px;
-  background: var(--color-surface);
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 680;
 }
 
 .evidenceItem {
@@ -627,17 +531,6 @@
   backdrop-filter: blur(10px);
 }
 
-.footer > button:first-child {
-  min-height: 46px;
-  border: 1px solid var(--color-primary);
-  border-radius: 10px;
-  color: var(--color-primary-dark);
-  background: var(--color-surface);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 700;
-}
-
 @media (min-width: 860px) {
   .overlay {
     padding-block: 28px;
@@ -671,10 +564,6 @@
   .stepHeading {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .addButton {
-    width: 100%;
   }
 
   .itemCard {

@@ -27,7 +27,12 @@ import type {
 import { ApiError, toApiError } from "@/lib/api/client";
 
 import styles from "./operations-queue.module.css";
+import { buttonStyles, fieldStyles } from "./control-styles";
+import { DemoBadge } from "./demo-badge";
+import { LoadingSpinner } from "./loading-spinner";
+import { LocaleSwitch } from "./locale-switch";
 import OperationsReview from "./operations-review";
+import { ReturnStatusBadge } from "./return-status-badge";
 
 type Locale = "en" | "es";
 type QueueState =
@@ -395,7 +400,7 @@ export default function OperationsQueue({
     <div className={styles.page}>
       <aside className={styles.sidebar}>
         <div className={styles.sidebarBrand}>ReturnOps</div>
-        <span className={styles.demoBadge}>{t.demo}</span>
+        <DemoBadge variant="operations">{t.demo}</DemoBadge>
         <nav aria-label="Operations navigation">
           <span><b aria-hidden="true">⌂</b>{t.overview}</span>
           <span className={styles.navActive}><b aria-hidden="true">▤</b>{t.requestsNav}</span>
@@ -420,10 +425,11 @@ export default function OperationsQueue({
           >
             {t.role}
           </button>
-          <div className={styles.localeSwitch} aria-label="Language">
-            <button className={locale === "en" ? styles.localeActive : undefined} onClick={() => onLocaleChange("en")} type="button">EN</button>
-            <button className={locale === "es" ? styles.localeActive : undefined} onClick={() => onLocaleChange("es")} type="button">ES</button>
-          </div>
+          <LocaleSwitch
+            locale={locale}
+            onLocaleChange={onLocaleChange}
+            variant="operations"
+          />
           <button className={styles.mobileSwitch} onClick={onSwitchToCustomer} type="button">{t.customerView}</button>
         </header>
 
@@ -452,16 +458,16 @@ export default function OperationsQueue({
           </section>
 
           <section className={styles.queueSection} aria-labelledby="operations-queue-title">
-            <h2 className={styles.srOnly} id="operations-queue-title">{t.title}</h2>
+            <h2 className="sr-only" id="operations-queue-title">{t.title}</h2>
             <div className={styles.filters}>
               <label className={styles.searchField}>
-                <span className={styles.srOnly}>{t.search}</span>
+                <span className="sr-only">{t.search}</span>
                 <b aria-hidden="true">⌕</b>
-                <input maxLength={120} onChange={(event) => setSearchInput(event.target.value)} placeholder={t.search} value={searchInput} />
+                <input className={fieldStyles.operationsSearch} maxLength={120} onChange={(event) => setSearchInput(event.target.value)} placeholder={t.search} value={searchInput} />
               </label>
               <label>
-                <span className={styles.srOnly}>{t.status}</span>
-                <select onChange={(event) => changeStatus(event.target.value as OperationsReturnStatus | "")} value={statusFilter}>
+                <span className="sr-only">{t.status}</span>
+                <select className={fieldStyles.operationsSelect} onChange={(event) => changeStatus(event.target.value as OperationsReturnStatus | "")} value={statusFilter}>
                   <option value="">{t.allStatuses}</option>
                   <option value="SUBMITTED">{t.submitted}</option>
                   <option value="NEEDS_INFORMATION">{t.needsInfo}</option>
@@ -470,8 +476,8 @@ export default function OperationsQueue({
                 </select>
               </label>
               <label>
-                <span className={styles.srOnly}>Ordering</span>
-                <select onChange={(event) => changeOrdering(event.target.value as OperationsOrdering)} value={ordering}>
+                <span className="sr-only">Ordering</span>
+                <select className={fieldStyles.operationsSelect} onChange={(event) => changeOrdering(event.target.value as OperationsOrdering)} value={ordering}>
                   <option value="-updated_at">{t.newest}</option>
                   <option value="updated_at">{t.oldest}</option>
                   <option value="-total_value">{t.highest}</option>
@@ -479,7 +485,7 @@ export default function OperationsQueue({
                   <option value="reference">{t.referenceOrder}</option>
                 </select>
               </label>
-              <button className={styles.resetButton} disabled={resetting} onClick={resetDemo} type="button">
+              <button className={`${styles.resetButton} ${buttonStyles.operationsReset}`} disabled={resetting} onClick={resetDemo} type="button">
                 {resetting ? t.resetting : t.reset}
               </button>
             </div>
@@ -488,7 +494,7 @@ export default function OperationsQueue({
             {queue.status === "error" && (
               <div className={styles.errorState} role="alert">
                 <div><strong>{t.error}</strong><p>{queue.error.message}</p></div>
-                <button onClick={refresh} type="button">{t.retry}</button>
+                <button className={buttonStyles.operationsSecondary} onClick={refresh} type="button">{t.retry}</button>
               </div>
             )}
             {queue.status === "ready" && queue.data.results.length === 0 && <QueueMessage message={t.empty} />}
@@ -511,9 +517,9 @@ export default function OperationsQueue({
                   requests={queue.data.results}
                 />
                 <div className={styles.pagination}>
-                  <button disabled={!queue.data.previous} onClick={() => { setQueue({ status: "loading" }); setPage((current) => Math.max(1, current - 1)); }} type="button">← {t.previous}</button>
+                  <button className={buttonStyles.operationsPagination} disabled={!queue.data.previous} onClick={() => { setQueue({ status: "loading" }); setPage((current) => Math.max(1, current - 1)); }} type="button">← {t.previous}</button>
                   <span>{t.page(page, totalPages)}</span>
-                  <button disabled={!queue.data.next} onClick={() => { setQueue({ status: "loading" }); setPage((current) => current + 1); }} type="button">{t.next} →</button>
+                  <button className={`${buttonStyles.operationsPagination} justify-self-end`} disabled={!queue.data.next} onClick={() => { setQueue({ status: "loading" }); setPage((current) => current + 1); }} type="button">{t.next} →</button>
                 </div>
               </>
             )}
@@ -634,9 +640,13 @@ function ExpandedRequest({
 }
 
 function StatusBadge({ locale, status }: { locale: Locale; status: OperationsReturnStatus }) {
-  return <span className={styles.statusBadge} data-status={status}>{statusLabels[locale][status]}</span>;
+  return (
+    <ReturnStatusBadge status={status} variant="operations">
+      {statusLabels[locale][status]}
+    </ReturnStatusBadge>
+  );
 }
 
 function QueueMessage({ compact = false, loading = false, message }: { compact?: boolean; loading?: boolean; message: string }) {
-  return <div className={compact ? styles.compactMessage : styles.queueMessage} role="status">{loading && <span className={styles.spinner} aria-hidden="true" />}{message}</div>;
+  return <div className={compact ? styles.compactMessage : styles.queueMessage} role="status">{loading && <LoadingSpinner />}{message}</div>;
 }

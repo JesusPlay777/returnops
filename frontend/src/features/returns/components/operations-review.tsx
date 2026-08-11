@@ -14,6 +14,8 @@ import type {
 import { toApiError } from "@/lib/api/client";
 
 import styles from "./operations-review.module.css";
+import { buttonStyles, fieldStyles } from "./control-styles";
+import { ReturnStatusBadge } from "./return-status-badge";
 
 type Locale = "en" | "es";
 
@@ -307,9 +309,9 @@ export default function OperationsReview({
             <p>{t.eyebrow}</p>
             <div className={styles.titleRow}>
               <h2 id={titleId}>{request.reference}</h2>
-              <span className={styles.statusBadge} data-status={request.status}>
+              <ReturnStatusBadge status={request.status} variant="review">
                 {statusLabels[locale][request.status as OperationsReturnStatus]}
-              </span>
+              </ReturnStatusBadge>
             </div>
             <span id={descriptionId}>
               {request.item_count} {locale === "es" ? "artículos" : "items"} · {formatMoney(request.total_value, request.currency, locale)}
@@ -317,7 +319,7 @@ export default function OperationsReview({
           </div>
           <button
             aria-label={t.close}
-            className={styles.closeButton}
+            className={buttonStyles.operationsReviewClose}
             disabled={submitting}
             onClick={onClose}
             ref={closeButtonRef}
@@ -433,6 +435,7 @@ export default function OperationsReview({
                     </label>
                     <textarea
                       aria-invalid={validationError}
+                      className={fieldStyles.operationsNote}
                       disabled={submitting}
                       id={`${titleId}-note`}
                       maxLength={2000}
@@ -455,7 +458,7 @@ export default function OperationsReview({
                 {error && <div className={styles.actionError} role="alert"><strong>{t.transitionError}</strong><span>{error}</span></div>}
 
                 {!confirming || !decision ? (
-                  <button className={styles.continueButton} disabled={!decision || submitting} onClick={prepareConfirmation} type="button">
+                  <button className={buttonStyles.operationsReviewPrimary} disabled={!decision || submitting} onClick={prepareConfirmation} type="button">
                     {t.continue} →
                   </button>
                 ) : (
@@ -463,8 +466,8 @@ export default function OperationsReview({
                     <strong>{t.confirmationTitle}</strong>
                     <p>{t.confirmation(decisionLabel(locale, decision), request.reference)}</p>
                     <div>
-                      <button disabled={submitting} onClick={() => setConfirming(false)} type="button">{t.back}</button>
-                      <button disabled={submitting} onClick={confirmDecision} type="button">{submitting ? t.submitting : t.confirm}</button>
+                      <button className={buttonStyles.operationsConfirmationSecondary} disabled={submitting} onClick={() => setConfirming(false)} type="button">{t.back}</button>
+                      <button className={buttonStyles.operationsConfirmationPrimary} disabled={submitting} onClick={confirmDecision} type="button">{submitting ? t.submitting : t.confirm}</button>
                     </div>
                   </div>
                 )}
