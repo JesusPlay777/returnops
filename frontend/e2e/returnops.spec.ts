@@ -174,17 +174,45 @@ async function expectVisualBaseline(
     await document.fonts.ready;
   });
 
-  const mask = [
-    page.locator("time, tbody td:nth-child(6)"),
-    page
-      .getByRole("dialog")
-      .locator("dl")
-      .first()
-      .locator(":scope > div")
-      .nth(3)
-      .locator("dd"),
-    page.getByRole("dialog").locator("li small"),
-  ];
+  const customerWorkflow = page.getByRole("dialog", {
+    name: /^(New return|Nueva devolución)$/,
+  });
+  const customerWorkflowVisible = await customerWorkflow.isVisible();
+  if (customerWorkflowVisible) {
+    await customerWorkflow.evaluate((dialog) => {
+      window.scrollTo(0, 0);
+      dialog.scrollTo(0, 0);
+      let ancestor = dialog.parentElement;
+      while (ancestor) {
+        ancestor.scrollTo(0, 0);
+        ancestor = ancestor.parentElement;
+      }
+      dialog.parentElement?.setAttribute(
+        "data-visual-baseline",
+        "customer-workflow",
+      );
+    });
+    await page.addStyleTag({
+      content:
+        '[data-visual-baseline="customer-workflow"] {' +
+        "background: #4b5a57 !important; " +
+        "backdrop-filter: none !important; }",
+    });
+  }
+
+  const mask = customerWorkflowVisible
+    ? []
+    : [
+        page.locator("time, tbody td:nth-child(6)"),
+        page
+          .getByRole("dialog")
+          .locator("dl")
+          .first()
+          .locator(":scope > div")
+          .nth(3)
+          .locator("dd"),
+        page.getByRole("dialog").locator("li small"),
+      ];
   if (maskMobileQueue) {
     mask.push(page.locator("article button small"));
   }
