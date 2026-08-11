@@ -17,7 +17,7 @@ export const customerSurfaceStyles = {
   roleBar: `${customerContainer} flex min-h-[62px] items-center gap-[30px]`,
   hero: `${customerContainer} grid grid-cols-[minmax(0,1fr)_minmax(300px,0.42fr)] items-end gap-[clamp(48px,10vw,132px)] py-[clamp(64px,9vw,112px)] pb-20 max-[900px]:grid-cols-1 max-[620px]:gap-9 max-[620px]:py-[54px] max-[620px]:pb-[60px]`,
   sessionCard:
-    "grid grid-cols-[40px_1fr] items-start gap-[14px] rounded-[18px] border border-[#c5ddd8] bg-[rgb(255_255_255_/_66%)] p-[22px] backdrop-blur-[12px] max-[900px]:max-w-[540px]",
+    "grid grid-cols-[40px_1fr] items-start gap-[14px] rounded-[18px] border border-[#c5ddd8] bg-[rgb(255_255_255_/_66%)] p-[22px] backdrop-blur-[12px] data-[status=waking]:border-[#e7c878] data-[status=error]:border-[#edc8c4] max-[900px]:max-w-[540px]",
   returnsPanel: `${customerContainer} mb-[34px] rounded-3xl border border-border bg-surface p-[clamp(28px,5vw,52px)] shadow-surface max-[620px]:rounded-[19px] max-[620px]:px-5 max-[620px]:py-6`,
   detailPanel: `${customerContainer} mb-20 scroll-mt-6 rounded-3xl border border-border bg-surface p-[clamp(28px,5vw,52px)] shadow-surface max-[620px]:rounded-[19px] max-[620px]:px-5 max-[620px]:py-6`,
   sectionHeader:
@@ -30,6 +30,8 @@ export const customerSurfaceStyles = {
   pagination:
     "mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-[18px] max-[620px]:grid-cols-2 [&>span]:max-[620px]:col-span-full [&>span]:max-[620px]:row-start-1 [&>span]:max-[620px]:text-center [&>button]:max-[620px]:w-full",
   loadingState: customerMessageSurface,
+  coldStartState:
+    `${customerMessageSurface} flex-col px-6 text-center [&>div]:max-w-[540px] [&_strong]:text-[15px] [&_strong]:text-ink [&_p]:mt-2 [&_p]:text-[12px] [&_p]:leading-[1.6] [&_p]:text-text-secondary`,
   emptyState: customerMessageSurface,
   errorState:
     "mt-8 flex min-h-[170px] items-center justify-between gap-6 rounded-2xl border border-dashed border-[#edc8c4] bg-[#fffafa] p-6",

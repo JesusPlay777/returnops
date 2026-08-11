@@ -175,9 +175,12 @@ inside `transaction.atomic()`.
    bootstrap completes.
 
 The default visitor lifetime is configurable, with 24 hours as the initial
-development value. Expiration is enforced synchronously on every request. No
-Celery worker or scheduled cleanup is required for correctness; expired data is
-unreachable and may later be purged by a management command.
+development value. Expiration is enforced synchronously on every request, so
+expired data is unreachable even before physical deletion. The idempotent
+`cleanup_expired_demo_data` management command removes expired visitor
+sandboxes, their cascaded fictional data, and expired Django sessions whenever
+the backend starts. It can also be run manually with `--dry-run`. No Celery
+worker or scheduler is required.
 
 Unsafe requests use Django's CSRF protection. The frontend sends cookies with
 `credentials: "include"` and supplies the CSRF token using the standard

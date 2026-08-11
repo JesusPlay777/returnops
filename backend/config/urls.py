@@ -1,6 +1,6 @@
 """Root URL configuration for ReturnOps."""
 
-from django.contrib import admin
+from django.conf import settings
 from django.urls import include, path
 from drf_spectacular.views import (
     SpectacularAPIView,
@@ -17,7 +17,6 @@ public_docs = {
 
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
     path("api/", include("core.urls")),
     path(
         "api/v1/schema/",
@@ -45,3 +44,8 @@ urlpatterns = [
     ),
     path("api/v1/", include("returns.api.urls")),
 ]
+
+if settings.DJANGO_ENABLE_ADMIN:
+    from django.contrib import admin
+
+    urlpatterns.insert(0, path("admin/", admin.site.urls))

@@ -12,8 +12,8 @@ const unavailable: Health = {
 
 export async function GET() {
   const backendUrl =
-    process.env.BACKEND_INTERNAL_URL ??
-    process.env.NEXT_PUBLIC_API_URL ??
+    process.env.BACKEND_INTERNAL_URL?.trim() ||
+    process.env.NEXT_PUBLIC_API_URL?.trim() ||
     "http://localhost:8000";
 
   try {

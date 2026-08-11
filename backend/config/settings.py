@@ -3,8 +3,12 @@
 import os
 from pathlib import Path
 
+import dj_database_url
+from django.core.exceptions import ImproperlyConfigured
+
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+INSECURE_LOCAL_SECRET_KEY = "returnops-insecure-local-key"
 
 
 def env_bool(name: str, default: bool = False) -> bool:
@@ -36,19 +40,46 @@ def env_positive_int(name: str, default: int) -> int:
     return value
 
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "returnops-insecure-local-key")
+def env_non_negative_int(name: str, default: int) -> int:
+    """Read a non-negative integer or fail fast on invalid configuration."""
+    raw_value = os.getenv(name, str(default))
+    try:
+        value = int(raw_value)
+    except ValueError as error:
+        raise ValueError(f"{name} must be a non-negative integer.") from error
+    if value < 0:
+        raise ValueError(f"{name} must be a non-negative integer.")
+    return value
+
+
 DEBUG = env_bool("DJANGO_DEBUG", True)
+configured_secret_key = os.getenv("DJANGO_SECRET_KEY", "").strip()
+if not DEBUG and (
+    not configured_secret_key
+    or configured_secret_key == INSECURE_LOCAL_SECRET_KEY
+):
+    raise ImproperlyConfigured(
+        "DJANGO_SECRET_KEY must be set to a secure value when "
+        "DJANGO_DEBUG is false."
+    )
+SECRET_KEY = configured_secret_key or INSECURE_LOCAL_SECRET_KEY
+
 ALLOWED_HOSTS = env_list(
     "DJANGO_ALLOWED_HOSTS",
-    "localhost,127.0.0.1,backend",
+    "localhost,127.0.0.1,backend" if DEBUG else "",
 )
+if not DEBUG and not ALLOWED_HOSTS:
+    raise ImproperlyConfigured(
+        "DJANGO_ALLOWED_HOSTS must list the production host names."
+    )
+
+DJANGO_ENABLE_ADMIN = env_bool("DJANGO_ENABLE_ADMIN", DEBUG)
 RETURNOPS_VISITOR_SESSION_TTL_HOURS = env_positive_int(
     "RETURNOPS_VISITOR_SESSION_TTL_HOURS",
     24,
 )
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
@@ -61,9 +92,12 @@ INSTALLED_APPS = [
     "core",
     "returns.apps.ReturnsConfig",
 ]
+if DJANGO_ENABLE_ADMIN:
+    INSTALLED_APPS.insert(0, "django.contrib.admin")
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -93,13 +127,36 @@ TEMPLATES = [
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-if os.getenv("DB_ENGINE", "postgresql") == "sqlite":
+database_url = os.getenv("DATABASE_URL", "").strip()
+database_engine = os.getenv("DB_ENGINE", "postgresql").strip().lower()
+
+if database_url:
+    try:
+        production_database = dj_database_url.parse(
+            database_url,
+            conn_max_age=60,
+            conn_health_checks=True,
+        )
+    except ValueError as error:
+        raise ImproperlyConfigured(
+            "DATABASE_URL must be a valid PostgreSQL URL."
+        ) from error
+    if production_database["ENGINE"] != "django.db.backends.postgresql":
+        raise ImproperlyConfigured(
+            "DATABASE_URL must use the PostgreSQL engine."
+        )
+    DATABASES = {"default": production_database}
+elif database_engine == "sqlite":
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
     }
+elif not DEBUG:
+    raise ImproperlyConfigured(
+        "DATABASE_URL must be set when DJANGO_DEBUG is false."
+    )
 else:
     DATABASES = {
         "default": {
@@ -137,21 +194,36 @@ TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": (
+            "whitenoise.storage.CompressedManifestStaticFilesStorage"
+        ),
+    },
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CORS_ALLOWED_ORIGINS = env_list(
     "DJANGO_CORS_ALLOWED_ORIGINS",
-    "http://localhost:3000",
+    "http://localhost:3000" if DEBUG else "",
 )
 CSRF_TRUSTED_ORIGINS = env_list(
     "DJANGO_CSRF_TRUSTED_ORIGINS",
-    "http://localhost:3000",
+    "http://localhost:3000" if DEBUG else "",
 )
+if not DEBUG and not CSRF_TRUSTED_ORIGINS:
+    raise ImproperlyConfigured(
+        "DJANGO_CSRF_TRUSTED_ORIGINS must list the public frontend origin."
+    )
 CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {
@@ -175,8 +247,34 @@ SESSION_COOKIE_NAME = "returnops_sessionid"
 SESSION_COOKIE_AGE = RETURNOPS_VISITOR_SESSION_TTL_HOURS * 60 * 60
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_NAME = "returnops_csrftoken"
+CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = not DEBUG
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "same-origin"
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin"
+SECURE_SSL_REDIRECT = not DEBUG and env_bool(
+    "DJANGO_SECURE_SSL_REDIRECT",
+    True,
+)
+SECURE_HSTS_SECONDS = env_non_negative_int(
+    "DJANGO_SECURE_HSTS_SECONDS",
+    3600 if not DEBUG else 0,
+)
+# Keep these disabled until ReturnOps uses a domain whose subdomains and HSTS
+# preload lifecycle are fully controlled by the project owner.
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG and env_bool(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS",
+    False,
+)
+SECURE_HSTS_PRELOAD = not DEBUG and env_bool(
+    "DJANGO_SECURE_HSTS_PRELOAD",
+    False,
+)
+X_FRAME_OPTIONS = "DENY"
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "ReturnOps API",
@@ -233,8 +331,3 @@ SPECTACULAR_SETTINGS = {
         }
     },
 }
-
-if not DEBUG:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_CONTENT_TYPE_NOSNIFF = True

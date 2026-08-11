@@ -16,7 +16,7 @@ export const customerPatternStyles = {
   sessionCard:
     "[&_strong]:text-[13px] [&_strong]:font-bold [&_p]:mt-[6px] [&_p]:text-[12px] [&_p]:leading-normal [&_p]:text-text-secondary",
   sessionIcon:
-    "grid size-10 place-items-center rounded-full bg-primary-soft text-[14px] font-extrabold text-primary-dark",
+    "grid size-10 place-items-center rounded-full bg-primary-soft text-[14px] font-extrabold text-primary-dark data-[status=waking]:bg-warning-soft data-[status=waking]:text-warning data-[status=error]:bg-danger-soft data-[status=error]:text-danger",
   sectionHeader:
     "[&_h2]:mt-2 [&_h2]:text-[clamp(26px,3vw,36px)] [&_h2]:font-[620] [&_h2]:tracking-[-0.045em] [&>p]:text-[12px] [&>p]:text-text-secondary",
   tableFrame:

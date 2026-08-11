@@ -13,7 +13,9 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=django:django . .
-RUN chmod +x /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh \
+    && mkdir -p /app/staticfiles \
+    && chown django:django /app/staticfiles
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 
@@ -23,8 +25,12 @@ CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
 FROM base AS production
 
-ENV DJANGO_DEBUG=false
+ENV DJANGO_DEBUG=false \
+    PORT=8000 \
+    WEB_CONCURRENCY=2 \
+    GUNICORN_THREADS=4 \
+    GUNICORN_TIMEOUT=60
 
 USER django
 
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "2", "--threads", "4", "--timeout", "60"]
+CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers ${WEB_CONCURRENCY} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --access-logfile - --error-logfile -"]
