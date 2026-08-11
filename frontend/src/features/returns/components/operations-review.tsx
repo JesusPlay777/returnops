@@ -13,8 +13,8 @@ import type {
 } from "@/features/returns/types";
 import { toApiError } from "@/lib/api/client";
 
-import styles from "./operations-review.module.css";
 import { buttonStyles, fieldStyles } from "./control-styles";
+import { reviewPatternStyles } from "./pattern-styles";
 import { ReturnStatusBadge } from "./return-status-badge";
 import { reviewSurfaceStyles } from "./surface-styles";
 
@@ -305,10 +305,10 @@ export default function OperationsReview({
         className={reviewSurfaceStyles.dialog}
         role="dialog"
       >
-        <header className={`${reviewSurfaceStyles.header} ${styles.header}`}>
+        <header className={`${reviewSurfaceStyles.header} ${reviewPatternStyles.header}`}>
           <div>
             <p>{t.eyebrow}</p>
-            <div className={`${reviewSurfaceStyles.titleRow} ${styles.titleRow}`}>
+            <div className={`${reviewSurfaceStyles.titleRow} ${reviewPatternStyles.titleRow}`}>
               <h2 id={titleId}>{request.reference}</h2>
               <ReturnStatusBadge status={request.status} variant="review">
                 {statusLabels[locale][request.status as OperationsReturnStatus]}
@@ -332,7 +332,7 @@ export default function OperationsReview({
 
         <div className={reviewSurfaceStyles.body}>
           <div className={reviewSurfaceStyles.contentColumn}>
-            <dl className={`${reviewSurfaceStyles.summaryGrid} ${styles.summaryGrid}`}>
+            <dl className={`${reviewSurfaceStyles.summaryGrid} ${reviewPatternStyles.summaryGrid}`}>
               <div><dt>{t.order}</dt><dd>{request.order_reference}</dd></div>
               <div><dt>{t.customer}</dt><dd>{request.customer_name}</dd></div>
               <div><dt>{t.email}</dt><dd>{request.customer_email}</dd></div>
@@ -341,35 +341,35 @@ export default function OperationsReview({
             </dl>
 
             <section className={reviewSurfaceStyles.detailSection}>
-              <div className={`${reviewSurfaceStyles.sectionHeading} ${styles.sectionHeading}`}>
+              <div className={`${reviewSurfaceStyles.sectionHeading} ${reviewPatternStyles.sectionHeading}`}>
                 <span aria-hidden="true">▤</span>
                 <h3>{t.itemsTitle}</h3>
               </div>
               <div className={reviewSurfaceStyles.itemList}>
                 {request.items.map((item, index) => (
                   <article className={reviewSurfaceStyles.itemCard} key={item.id}>
-                    <div className={styles.itemNumber}>{String(index + 1).padStart(2, "0")}</div>
-                    <div className={styles.itemMain}>
-                      <div className={`${reviewSurfaceStyles.itemTitle} ${styles.itemTitle}`}>
+                    <div className={reviewPatternStyles.itemNumber}>{String(index + 1).padStart(2, "0")}</div>
+                    <div>
+                      <div className={`${reviewSurfaceStyles.itemTitle} ${reviewPatternStyles.itemTitle}`}>
                         <div><h4>{item.product_name}</h4><span>{item.sku}</span></div>
                         <strong>{formatMoney(item.line_total, request.currency, locale)}</strong>
                       </div>
-                      <dl className={`${reviewSurfaceStyles.itemFacts} ${styles.itemFacts}`}>
+                      <dl className={`${reviewSurfaceStyles.itemFacts} ${reviewPatternStyles.itemFacts}`}>
                         <div><dt>{t.itemQuantity}</dt><dd>{item.quantity}</dd></div>
                         <div><dt>{t.reason}</dt><dd>{reasonLabels[locale][item.reason]}</dd></div>
                       </dl>
-                      <div className={styles.customerDetails}>
+                      <div className={reviewPatternStyles.detailBlock}>
                         <strong>{t.details}</strong>
                         <p>{item.details || t.noDetails}</p>
                       </div>
-                      <div className={styles.evidenceBlock}>
+                      <div className={reviewPatternStyles.detailBlock}>
                         <strong>{t.evidence} · {item.evidence.length}</strong>
                         {item.evidence.length === 0 ? (
                           <p>{t.noEvidence}</p>
                         ) : (
                           <div className={reviewSurfaceStyles.evidenceGrid}>
                             {item.evidence.map((evidence) => (
-                              <div className={`${reviewSurfaceStyles.evidenceCard} ${styles.evidenceCard}`} key={evidence.id}>
+                              <div className={`${reviewSurfaceStyles.evidenceCard} ${reviewPatternStyles.evidenceCard}`} key={evidence.id}>
                                 <span aria-hidden="true">⌕</span>
                                 <div>
                                   <strong>{evidence.caption || evidenceLabels[locale][evidence.kind]}</strong>
@@ -387,14 +387,14 @@ export default function OperationsReview({
             </section>
 
             <section className={reviewSurfaceStyles.detailSection}>
-              <div className={`${reviewSurfaceStyles.sectionHeading} ${styles.sectionHeading}`}>
+              <div className={`${reviewSurfaceStyles.sectionHeading} ${reviewPatternStyles.sectionHeading}`}>
                 <span aria-hidden="true">◷</span>
                 <h3>{t.timeline}</h3>
               </div>
-              <ol className={styles.timeline}>
+              <ol className={reviewPatternStyles.timeline}>
                 {[...request.status_events].reverse().map((event) => (
                   <li key={event.id}>
-                    <span className={styles.timelineDot} data-status={event.to_status} />
+                    <span className={reviewPatternStyles.timelineDot} data-status={event.to_status} />
                     <div>
                       <strong>{statusLabels[locale][event.to_status as OperationsReturnStatus] ?? event.to_status}</strong>
                       <small>{actorLabels[locale][event.actor]} · {formatDate(event.created_at, locale)}</small>
@@ -408,28 +408,29 @@ export default function OperationsReview({
 
           <aside className={reviewSurfaceStyles.decisionColumn}>
             {request.status === "SUBMITTED" ? (
-              <div className={styles.decisionPanel}>
-                <p className={styles.panelEyebrow}>{t.eyebrow}</p>
-                <h3>{t.decisionTitle}</h3>
-                <p className={styles.decisionIntro}>{t.decisionIntro}</p>
-                <div className={styles.decisionOptions}>
+              <div>
+                <p className={reviewPatternStyles.panelEyebrow}>{t.eyebrow}</p>
+                <h3 className={reviewPatternStyles.panelTitle}>{t.decisionTitle}</h3>
+                <p className={reviewPatternStyles.decisionIntro}>{t.decisionIntro}</p>
+                <div className={reviewPatternStyles.decisionOptions}>
                   {decisions.map((option) => (
                     <button
                       aria-pressed={decision === option}
+                      className={reviewPatternStyles.decisionButton}
                       data-active={decision === option}
                       data-decision={option}
                       key={option}
                       onClick={() => selectDecision(option)}
                       type="button"
                     >
-                      <span aria-hidden="true">{option === "NEEDS_INFORMATION" ? "i" : option === "APPROVED" ? "✓" : "×"}</span>
-                      <div><strong>{decisionLabel(locale, option)}</strong><small>{decisionHint(locale, option)}</small></div>
+                      <span className={reviewPatternStyles.decisionIcon} data-decision={option} aria-hidden="true">{option === "NEEDS_INFORMATION" ? "i" : option === "APPROVED" ? "✓" : "×"}</span>
+                      <div className={reviewPatternStyles.decisionCopy}><strong>{decisionLabel(locale, option)}</strong><small>{decisionHint(locale, option)}</small></div>
                     </button>
                   ))}
                 </div>
 
                 {decision && (
-                  <div className={styles.noteField}>
+                  <div className={reviewPatternStyles.noteField}>
                     <label htmlFor={`${titleId}-note`}>
                       {t.note}
                       <span>{requiresNote ? t.noteRequired : t.noteOptional}</span>
@@ -449,24 +450,24 @@ export default function OperationsReview({
                       rows={5}
                       value={note}
                     />
-                    <div className={styles.noteMeta}>
+                    <div className={reviewPatternStyles.noteMeta}>
                       <span>{validationError ? t.noteError : ""}</span>
                       <small>{note.length}/2000</small>
                     </div>
                   </div>
                 )}
 
-                {error && <div className={`${reviewSurfaceStyles.actionError} ${styles.actionError}`} role="alert"><strong>{t.transitionError}</strong><span>{error}</span></div>}
+                {error && <div className={`${reviewSurfaceStyles.actionError} ${reviewPatternStyles.feedback} ${reviewPatternStyles.actionError}`} role="alert"><strong>{t.transitionError}</strong><span>{error}</span></div>}
 
                 {!confirming || !decision ? (
                   <button className={buttonStyles.operationsReviewPrimary} disabled={!decision || submitting} onClick={prepareConfirmation} type="button">
                     {t.continue} →
                   </button>
                 ) : (
-                  <div className={`${reviewSurfaceStyles.confirmation} ${styles.confirmation}`} role="alert">
+                  <div className={`${reviewSurfaceStyles.confirmation} ${reviewPatternStyles.feedback}`} role="alert">
                     <strong>{t.confirmationTitle}</strong>
                     <p>{t.confirmation(decisionLabel(locale, decision), request.reference)}</p>
-                    <div>
+                    <div className={reviewPatternStyles.confirmationActions}>
                       <button className={buttonStyles.operationsConfirmationSecondary} disabled={submitting} onClick={() => setConfirming(false)} type="button">{t.back}</button>
                       <button className={buttonStyles.operationsConfirmationPrimary} disabled={submitting} onClick={confirmDecision} type="button">{submitting ? t.submitting : t.confirm}</button>
                     </div>
@@ -474,13 +475,13 @@ export default function OperationsReview({
                 )}
               </div>
             ) : (
-              <div className={`${reviewSurfaceStyles.readOnlyPanel} ${styles.readOnlyPanel}`} data-status={request.status}>
-                <span className={styles.readOnlyIcon} aria-hidden="true">
+              <div className={`${reviewSurfaceStyles.readOnlyPanel} ${reviewPatternStyles.readOnlyPanel}`} data-status={request.status}>
+                <span className={reviewPatternStyles.readOnlyIcon} data-status={request.status} aria-hidden="true">
                   {request.status === "NEEDS_INFORMATION" ? "i" : request.status === "APPROVED" ? "✓" : "×"}
                 </span>
-                <p>{request.status === "NEEDS_INFORMATION" ? t.readOnlyTitle : t.completedTitle}</p>
+                <p className={reviewPatternStyles.readOnlyEyebrow} data-status={request.status}>{request.status === "NEEDS_INFORMATION" ? t.readOnlyTitle : t.completedTitle}</p>
                 <h3>{statusLabels[locale][request.status as OperationsReturnStatus]}</h3>
-                <span>
+                <span className={reviewPatternStyles.readOnlyCopy}>
                   {request.status === "NEEDS_INFORMATION"
                     ? t.readOnlyNeedsInfo
                     : request.status === "APPROVED"

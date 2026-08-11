@@ -28,9 +28,9 @@ import {
 } from "@/features/returns/workflow";
 import { ApiError, toApiError } from "@/lib/api/client";
 
-import styles from "./customer-return-workflow.module.css";
 import { buttonStyles, fieldStyles } from "./control-styles";
 import { DemoBadge } from "./demo-badge";
+import { workflowPatternStyles } from "./pattern-styles";
 import { workflowSurfaceStyles } from "./surface-styles";
 
 type Locale = "en" | "es";
@@ -346,12 +346,12 @@ export default function CustomerReturnWorkflow({
         role="dialog"
       >
         <header className={workflowSurfaceStyles.header}>
-          <div className={styles.brand}>ReturnOps</div>
+          <div className={workflowPatternStyles.brand}>ReturnOps</div>
           <DemoBadge variant="workflow">Demo</DemoBadge>
-          <span className={styles.locale}>{locale.toUpperCase()}</span>
+          <span className={workflowPatternStyles.locale}>{locale.toUpperCase()}</span>
         </header>
 
-        <div className={`${workflowSurfaceStyles.workflowHeader} ${styles.workflowHeader}`}>
+        <div className={`${workflowSurfaceStyles.workflowHeader} ${workflowPatternStyles.workflowHeader}`}>
           <button
             aria-label={t.close}
             className={buttonStyles.workflowHeaderIcon}
@@ -365,13 +365,13 @@ export default function CustomerReturnWorkflow({
           <span>{t.step(step)}</span>
         </div>
 
-        <nav className={`${workflowSurfaceStyles.progress} ${styles.progress}`} aria-label="Return progress">
+        <nav className={`${workflowSurfaceStyles.progress} ${workflowPatternStyles.progress}`} aria-label="Return progress">
           {([1, 2, 3] as const).map((progressStep) => {
             const labels = [t.itemStep, t.evidenceStep, t.reviewStep];
             const complete = progressStep < step;
             return (
               <button
-                className={progressStep === step ? styles.currentStep : undefined}
+                className={`${workflowPatternStyles.progressButton} ${progressStep === step ? workflowPatternStyles.progressButtonActive : ""}`}
                 disabled={busy || (progressStep > 1 && returnRequest.items.length === 0)}
                 key={progressStep}
                 onClick={() => goToStep(progressStep)}
@@ -386,10 +386,10 @@ export default function CustomerReturnWorkflow({
 
         <div className={workflowSurfaceStyles.content}>
           {error && (
-            <div className={`${workflowSurfaceStyles.error} ${styles.error}`} role="alert">
+            <div className={workflowSurfaceStyles.error} role="alert">
               <strong>{step === 3 ? t.submitError : t.mutationError}</strong>
               <span>{error.message}</span>
-              <button onClick={() => setError(null)} type="button">×</button>
+              <button className={workflowPatternStyles.errorClose} onClick={() => setError(null)} type="button">×</button>
             </div>
           )}
 
@@ -482,7 +482,7 @@ function ItemsStep({
   const t = copy[locale];
   return (
     <div>
-      <div className={`${workflowSurfaceStyles.stepHeading} ${styles.stepHeading}`}>
+      <div className={`${workflowSurfaceStyles.stepHeading} ${workflowPatternStyles.stepHeading}`}>
         <div>
           <h1>{t.itemsTitle}</h1>
           <p>{t.itemsIntro}</p>
@@ -503,15 +503,15 @@ function ItemsStep({
       <div className={workflowSurfaceStyles.itemList}>
         {returnRequest.items.map((item) => (
           <article className={workflowSurfaceStyles.itemCard} key={item.id}>
-            <span className={styles.itemIcon} aria-hidden="true">□</span>
-            <div className={styles.itemCopy}>
+            <span className={workflowPatternStyles.itemIcon} aria-hidden="true">□</span>
+            <div className={workflowPatternStyles.itemCopy}>
               <span>{item.sku}</span>
               <h2>{item.product_name}</h2>
               <p>
                 {item.quantity} × {formatMoney(item.unit_price, returnRequest.currency, locale)} · {reasonLabels[locale][item.reason]}
               </p>
             </div>
-            <div className={styles.itemActions}>
+            <div className={workflowPatternStyles.itemActions}>
               <strong>{formatMoney(item.line_total, returnRequest.currency, locale)}</strong>
               <button disabled={busy} onClick={() => onEdit(item)} type="button">{t.edit}</button>
             </div>
@@ -550,14 +550,14 @@ function ItemForm({
 
   return (
     <form className={workflowSurfaceStyles.itemForm} onSubmit={submit}>
-      <div className={`${workflowSurfaceStyles.formHeading} ${styles.formHeading}`}>
+      <div className={`${workflowSurfaceStyles.formHeading} ${workflowPatternStyles.formHeading}`}>
         <div>
           <h2>{t.editItem}</h2>
           <p>{editor.item.sku} · {editor.item.product_name} · {formatMoney(editor.item.unit_price, "USD", locale)}</p>
         </div>
         <button className={buttonStyles.workflowFormIcon} disabled={busy} onClick={onCancel} type="button">×</button>
       </div>
-      <div className={`${workflowSurfaceStyles.formGrid} ${styles.formGrid}`}>
+      <div className={`${workflowSurfaceStyles.formGrid} ${workflowPatternStyles.formGrid}`}>
         <label>
           <span>{t.quantity}</span>
           <input
@@ -582,7 +582,7 @@ function ItemForm({
             ))}
           </select>
         </label>
-        <label className={styles.fullField}>
+        <label className={workflowPatternStyles.fullField}>
           <span>{t.details}</span>
           <textarea
             className={fieldStyles.workflowTextarea}
@@ -619,7 +619,7 @@ function EvidenceStep({
   const t = copy[locale];
   return (
     <div>
-      <div className={`${workflowSurfaceStyles.stepHeading} ${styles.stepHeading}`}>
+      <div className={`${workflowSurfaceStyles.stepHeading} ${workflowPatternStyles.stepHeading}`}>
         <div><h1>{t.evidenceTitle}</h1><p>{t.evidenceIntro}</p></div>
       </div>
       <div className={workflowSurfaceStyles.evidenceItems}>
@@ -627,7 +627,7 @@ function EvidenceStep({
           const available = availableEvidenceKinds(item);
           return (
             <article className={workflowSurfaceStyles.evidenceItem} key={item.id}>
-              <div className={`${workflowSurfaceStyles.evidenceItemHeader} ${styles.evidenceItemHeader}`}>
+              <div className={`${workflowSurfaceStyles.evidenceItemHeader} ${workflowPatternStyles.evidenceItemHeader}`}>
                 <div>
                   <span>{item.sku}</span>
                   <h2>{item.product_name}</h2>
@@ -639,8 +639,8 @@ function EvidenceStep({
                   const attached = item.evidence.find((evidence) => evidence.kind === kind);
                   const label = evidenceLabels[locale][kind];
                   return (
-                    <div className={`${workflowSurfaceStyles.evidenceCard} ${styles.evidenceCard}`} data-attached={Boolean(attached)} key={kind}>
-                      <span className={styles.evidenceIcon} aria-hidden="true">
+                    <div className={`${workflowSurfaceStyles.evidenceCard} ${workflowPatternStyles.evidenceCard}`} data-attached={Boolean(attached)} key={kind}>
+                      <span className={workflowPatternStyles.evidenceIcon} aria-hidden="true">
                         {kind === "RECEIPT" ? "▤" : kind === "SERIAL_LABEL" ? "#" : "◫"}
                       </span>
                       <div><strong>{label.title}</strong><p>{label.description}</p></div>
@@ -686,11 +686,11 @@ function ReviewStep({
   const isResubmission = returnRequest.status === "NEEDS_INFORMATION";
   return (
     <div>
-      <div className={`${workflowSurfaceStyles.stepHeading} ${styles.stepHeading}`}>
+      <div className={`${workflowSurfaceStyles.stepHeading} ${workflowPatternStyles.stepHeading}`}>
         <div><h1>{t.reviewTitle}</h1><p>{t.reviewIntro}</p></div>
       </div>
       <section className={workflowSurfaceStyles.reviewCard}>
-        <div className={`${workflowSurfaceStyles.reviewRow} ${styles.orderSummary}`}>
+        <div className={`${workflowSurfaceStyles.reviewRow} ${workflowPatternStyles.orderSummary}`}>
           <span aria-hidden="true">□</span>
           <div>
             <small>{t.order}</small>
@@ -701,20 +701,20 @@ function ReviewStep({
           </div>
         </div>
         {returnRequest.items.map((item) => (
-          <div className={`${workflowSurfaceStyles.reviewRow} ${styles.reviewItem}`} key={item.id}>
+          <div className={`${workflowSurfaceStyles.reviewRow} ${workflowPatternStyles.reviewItem}`} key={item.id}>
             <span aria-hidden="true">□</span>
             <div><h3>{item.product_name}</h3><p>{item.quantity} · {reasonLabels[locale][item.reason]} · {t.evidenceCount(item.evidence.length)}</p></div>
             <strong>{formatMoney(item.line_total, returnRequest.currency, locale)}</strong>
           </div>
         ))}
-        <div className={`${workflowSurfaceStyles.reviewTotals} ${styles.reviewTotals}`}>
+        <div className={`${workflowSurfaceStyles.reviewTotals} ${workflowPatternStyles.reviewTotals}`}>
           <span>{t.evidenceCount(evidenceCount)}</span>
           <strong>{formatMoney(returnRequest.total_value, returnRequest.currency, locale)}</strong>
         </div>
       </section>
 
       {isResubmission && (
-        <label className={`${workflowSurfaceStyles.responseNote} ${styles.responseNote}`}>
+        <label className={`${workflowSurfaceStyles.responseNote} ${workflowPatternStyles.responseNote}`}>
           <strong>{t.responseNote}</strong>
           <span>{t.responseNoteHelp}</span>
           <textarea
@@ -729,11 +729,11 @@ function ReviewStep({
         </label>
       )}
 
-      <label className={`${workflowSurfaceStyles.confirmation} ${styles.confirmation}`}>
+      <label className={`${workflowSurfaceStyles.confirmation} ${workflowPatternStyles.confirmation}`}>
         <input checked={confirmed} onChange={(event) => onConfirm(event.target.checked)} type="checkbox" />
         <span>{t.confirmation}</span>
       </label>
-      <div className={`${workflowSurfaceStyles.warning} ${styles.warning}`}><span aria-hidden="true">!</span><p>{t.warning}</p></div>
+      <div className={workflowSurfaceStyles.warning}><span className={workflowPatternStyles.warningIcon} aria-hidden="true">!</span><p>{t.warning}</p></div>
     </div>
   );
 }
