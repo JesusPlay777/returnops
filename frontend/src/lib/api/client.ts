@@ -1,5 +1,3 @@
-const DEFAULT_API_BASE_URL = "http://localhost:8000";
-
 export const CSRF_COOKIE_NAME = "returnops_csrftoken";
 
 export type ApiErrorFields = Record<string, unknown>;
@@ -82,8 +80,13 @@ function getBrowserCookie(name: string): string | undefined {
   return readCookie(name, document.cookie);
 }
 
-function normalizeBaseUrl(value: string): string {
-  const url = new URL(value);
+function normalizeBaseUrl(value?: string): string {
+  const candidate = value?.trim();
+  if (!candidate) {
+    return "";
+  }
+
+  const url = new URL(candidate);
   if (url.protocol !== "http:" && url.protocol !== "https:") {
     throw new TypeError("NEXT_PUBLIC_API_URL must use HTTP or HTTPS.");
   }
@@ -158,9 +161,7 @@ export function toApiError(error: unknown): ApiError {
 
 export function createApiClient(dependencies: ApiClientDependencies = {}) {
   const baseUrl = normalizeBaseUrl(
-    dependencies.baseUrl ??
-      process.env.NEXT_PUBLIC_API_URL ??
-      DEFAULT_API_BASE_URL,
+    dependencies.baseUrl ?? process.env.NEXT_PUBLIC_API_URL,
   );
   const fetchRequest = dependencies.fetch ?? globalThis.fetch;
   const getCookie = dependencies.getCookie ?? getBrowserCookie;

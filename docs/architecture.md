@@ -55,11 +55,14 @@ secrets.
 
 ## Browser API boundary
 
-The visitor workflow calls Django directly from a small shared browser client.
-This is deliberate: Django owns the opaque HttpOnly session cookie and CSRF
-protection, while `NEXT_PUBLIC_API_URL` supplies the public API origin at build
-time. Every request includes credentials, and unsafe methods copy the readable
-CSRF cookie into `X-CSRFToken` centrally.
+The visitor workflow calls relative `/api/` paths through a small shared
+browser client. Next.js rewrites those same-origin requests to the Django
+origin supplied privately through `BACKEND_INTERNAL_URL`; the backend address
+is not exposed to browser code. `NEXT_PUBLIC_API_URL` remains an optional
+development override and is empty by default. Django still owns the opaque
+HttpOnly session cookie and CSRF protection. Every request includes
+credentials, and unsafe methods copy the readable CSRF cookie into
+`X-CSRFToken` centrally.
 
 The root layout stays a Server Component. A narrow client-side provider runs
 the idempotent session bootstrap once and exposes `bootstrapping`, `ready`, or
