@@ -1,3 +1,6 @@
+const workflowField =
+  "h-11 w-full rounded-[9px] border border-border bg-surface px-3 text-[12px] text-ink outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgb(15_118_110_/_11%)]";
+
 export const buttonStyles = {
   customerPrimary:
     "inline-flex min-h-12 cursor-pointer items-center justify-center gap-[9px] rounded-[11px] border border-primary bg-primary px-5 text-[13px] font-[720] text-surface transition-[background,transform] duration-150 ease-[ease] enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-55 motion-reduce:transition-none",
@@ -41,13 +44,11 @@ export const fieldStyles = {
   customerCatalogInput:
     "h-[42px] w-full rounded-[9px] border border-border bg-surface px-[14px] text-[11px] text-ink outline-none transition-[border-color,box-shadow] duration-[120ms] ease-[ease] focus:border-primary focus:shadow-[0_0_0_3px_rgb(15_118_110_/_12%)]",
   customerCatalogSelect:
-    "h-[42px] w-full cursor-pointer rounded-[9px] border border-border bg-surface px-[10px] text-[11px] text-ink outline-none",
+    "h-[42px] w-full cursor-pointer rounded-[9px] border border-border bg-surface px-[10px] text-[11px] text-ink outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgb(15_118_110_/_12%)]",
   customerCheckbox:
     "size-[18px] rounded-[10px] border border-border bg-surface p-0 text-[13px] text-ink accent-primary outline-none transition-[border-color,box-shadow] duration-[120ms] ease-[ease] focus:border-primary focus:shadow-[0_0_0_3px_rgb(15_118_110_/_12%)]",
-  workflowInput:
-    "h-11 w-full rounded-[9px] border border-border bg-surface px-3 text-[12px] text-ink outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgb(15_118_110_/_11%)]",
-  workflowSelect:
-    "h-11 w-full rounded-[9px] border border-border bg-surface px-3 text-[12px] text-ink outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgb(15_118_110_/_11%)]",
+  workflowInput: workflowField,
+  workflowSelect: workflowField,
   workflowTextarea:
     "w-full resize-y rounded-[9px] border border-border bg-surface p-3 text-[12px] leading-normal text-ink outline-none focus:border-primary focus:shadow-[0_0_0_3px_rgb(15_118_110_/_11%)]",
   operationsSearch:

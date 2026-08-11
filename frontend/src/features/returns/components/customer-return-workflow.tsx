@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -27,6 +27,7 @@ import {
   buildEvidenceAssetKey,
 } from "@/features/returns/workflow";
 import { ApiError, toApiError } from "@/lib/api/client";
+import { useModalDialog } from "@/lib/a11y/use-modal-dialog";
 
 import { buttonStyles, fieldStyles } from "./control-styles";
 import { DemoBadge } from "./demo-badge";
@@ -96,6 +97,7 @@ const copy = {
     editWorkflow: "Complete return",
     saveClose: "Save and close",
     close: "Close",
+    progress: "Return progress",
     step: (current: number) => `${current} / 3`,
     itemStep: "Items",
     evidenceStep: "Evidence",
@@ -151,6 +153,7 @@ const copy = {
     editWorkflow: "Completar devolución",
     saveClose: "Guardar y cerrar",
     close: "Cerrar",
+    progress: "Progreso de la devolución",
     step: (current: number) => `${current} / 3`,
     itemStep: "Artículos",
     evidenceStep: "Evidencia",
@@ -229,6 +232,8 @@ export default function CustomerReturnWorkflow({
   const [error, setError] = useState<ApiError | null>(null);
   const [confirmed, setConfirmed] = useState(false);
   const [responseNote, setResponseNote] = useState("");
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const t = copy[locale];
   const isResubmission = returnRequest.status === "NEEDS_INFORMATION";
   const evidenceCount = useMemo(
@@ -236,22 +241,12 @@ export default function CustomerReturnWorkflow({
     [returnRequest.items],
   );
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !busy && itemEditor === null) {
-        onClose(returnRequest);
-      }
-    }
-
-    document.addEventListener("keydown", handleEscape);
-    return () => {
-      document.body.style.overflow = previousOverflow;
-      document.removeEventListener("keydown", handleEscape);
-    };
-  }, [busy, itemEditor, onClose, returnRequest]);
+  useModalDialog({
+    canClose: !busy && itemEditor === null,
+    dialogRef,
+    initialFocusRef: closeButtonRef,
+    onClose: () => onClose(returnRequest),
+  });
 
   async function refreshReturn(): Promise<ReturnRequestDetail> {
     const refreshed = await retrieveCustomerReturn(returnRequest.id);
@@ -338,12 +333,14 @@ export default function CustomerReturnWorkflow({
   const canSubmit = confirmed && returnRequest.items.length > 0 && !noteMissing && !busy;
 
   return (
-    <div className={workflowSurfaceStyles.overlay}>
+    <div className={workflowSurfaceStyles.overlay} role="presentation">
       <section
         aria-label={t.workflow}
         aria-modal="true"
         className={workflowSurfaceStyles.shell}
+        ref={dialogRef}
         role="dialog"
+        tabIndex={-1}
       >
         <header className={workflowSurfaceStyles.header}>
           <div className={workflowPatternStyles.brand}>ReturnOps</div>
@@ -357,6 +354,7 @@ export default function CustomerReturnWorkflow({
             className={buttonStyles.workflowHeaderIcon}
             disabled={busy}
             onClick={() => onClose(returnRequest)}
+            ref={closeButtonRef}
             type="button"
           >
             ←
@@ -365,12 +363,13 @@ export default function CustomerReturnWorkflow({
           <span>{t.step(step)}</span>
         </div>
 
-        <nav className={`${workflowSurfaceStyles.progress} ${workflowPatternStyles.progress}`} aria-label="Return progress">
+        <nav className={`${workflowSurfaceStyles.progress} ${workflowPatternStyles.progress}`} aria-label={t.progress}>
           {([1, 2, 3] as const).map((progressStep) => {
             const labels = [t.itemStep, t.evidenceStep, t.reviewStep];
             const complete = progressStep < step;
             return (
               <button
+                aria-current={progressStep === step ? "step" : undefined}
                 className={`${workflowPatternStyles.progressButton} ${progressStep === step ? workflowPatternStyles.progressButtonActive : ""}`}
                 disabled={busy || (progressStep > 1 && returnRequest.items.length === 0)}
                 key={progressStep}
@@ -389,7 +388,7 @@ export default function CustomerReturnWorkflow({
             <div className={workflowSurfaceStyles.error} role="alert">
               <strong>{step === 3 ? t.submitError : t.mutationError}</strong>
               <span>{error.message}</span>
-              <button className={workflowPatternStyles.errorClose} onClick={() => setError(null)} type="button">×</button>
+              <button aria-label={t.close} className={workflowPatternStyles.errorClose} onClick={() => setError(null)} type="button">×</button>
             </div>
           )}
 
@@ -513,7 +512,7 @@ function ItemsStep({
             </div>
             <div className={workflowPatternStyles.itemActions}>
               <strong>{formatMoney(item.line_total, returnRequest.currency, locale)}</strong>
-              <button disabled={busy} onClick={() => onEdit(item)} type="button">{t.edit}</button>
+              <button aria-label={`${t.edit}: ${item.product_name}`} disabled={busy} onClick={() => onEdit(item)} type="button">{t.edit}</button>
             </div>
           </article>
         ))}
@@ -555,7 +554,7 @@ function ItemForm({
           <h2>{t.editItem}</h2>
           <p>{editor.item.sku} · {editor.item.product_name} · {formatMoney(editor.item.unit_price, "USD", locale)}</p>
         </div>
-        <button className={buttonStyles.workflowFormIcon} disabled={busy} onClick={onCancel} type="button">×</button>
+        <button aria-label={t.close} className={buttonStyles.workflowFormIcon} disabled={busy} onClick={onCancel} type="button">×</button>
       </div>
       <div className={`${workflowSurfaceStyles.formGrid} ${workflowPatternStyles.formGrid}`}>
         <label>
@@ -645,11 +644,11 @@ function EvidenceStep({
                       </span>
                       <div><strong>{label.title}</strong><p>{label.description}</p></div>
                       {attached ? (
-                        <button disabled={busy} onClick={() => onRemove(item.id, attached.id)} type="button">
+                        <button aria-label={`${t.evidenceAttached}: ${label.title}, ${item.product_name}. ${t.removeEvidence}`} disabled={busy} onClick={() => onRemove(item.id, attached.id)} type="button">
                           ✓ {t.evidenceAttached} · {t.removeEvidence}
                         </button>
                       ) : (
-                        <button disabled={busy || !available.includes(kind)} onClick={() => onAttach(item, kind)} type="button">
+                        <button aria-label={`${t.attachEvidence}: ${label.title}, ${item.product_name}`} disabled={busy || !available.includes(kind)} onClick={() => onAttach(item, kind)} type="button">
                           + {t.attachEvidence}
                         </button>
                       )}

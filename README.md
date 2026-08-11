@@ -133,3 +133,4 @@ The application itself uses PostgreSQL in Docker and in deployed environments.
 - [Returns domain and visitor-isolation contract](docs/returns-domain-contract.md)
 - [ADR 0001: synchronous core](docs/decisions/0001-synchronous-core.md)
 - [Automated testing](docs/testing.md)
+- [Frontend interface system](docs/frontend-interface-system.md)

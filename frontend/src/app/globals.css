@@ -60,8 +60,24 @@
     color: inherit;
   }
 
+  :where(a, button):focus-visible {
+    outline: 3px solid rgb(15 118 110 / 24%);
+    outline-offset: 2px;
+  }
+
   ::selection {
     color: var(--color-surface);
     background: var(--color-primary);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

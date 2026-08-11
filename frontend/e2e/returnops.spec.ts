@@ -267,6 +267,63 @@ test("dialogs can be dismissed with the keyboard", async ({ page }) => {
   await expect(review).not.toBeVisible();
 });
 
+test("accessibility contract — semantics, state, and modal focus", async ({ page }) => {
+  await openCustomerDemo(page);
+
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.locator("main")).toHaveCount(1);
+
+  const language = page.getByRole("group", { name: "Language" });
+  await expect(language.getByRole("button", { name: "EN" })).toHaveAttribute(
+    "aria-pressed",
+    "true",
+  );
+  await expect(language.getByRole("button", { name: "ES" })).toHaveAttribute(
+    "aria-pressed",
+    "false",
+  );
+
+  const startReturn = page.getByRole("button", { name: "Start a return" });
+  await startReturn.click();
+  const editor = page.getByRole("dialog", { name: "Start a fictional return" });
+  const orderSearch = editor.getByLabel("Find a fictional demo order");
+  await expect(orderSearch).toBeFocused();
+
+  await editor.getByRole("button", { name: "Cancel" }).focus();
+  await page.keyboard.press("Tab");
+  await expect(editor.getByRole("button", { name: "Close" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(editor).not.toBeVisible();
+  await expect(startReturn).toBeFocused();
+
+  await switchToOperations(page);
+  const submittedFilter = page
+    .getByRole("region", { name: "Return status summary" })
+    .getByRole("button", { name: /Submitted/ });
+  await expect(submittedFilter).toHaveAttribute("aria-pressed", "false");
+  await submittedFilter.click();
+  await expect(submittedFilter).toHaveAttribute("aria-pressed", "true");
+
+  const review = await openOperationsReview(page, "RTN-204");
+  const closeReview = review.getByRole("button", { name: "Close full request" });
+  await expect(closeReview).toBeFocused();
+  await page.keyboard.press("Shift+Tab");
+  expect(
+    await review.evaluate((dialog) => dialog.contains(document.activeElement)),
+  ).toBe(true);
+  await page.keyboard.press("Escape");
+  await expect(review).not.toBeVisible();
+  await expect(page.getByRole("button", { name: /Open full request/ })).toBeFocused();
+
+  const unnamedButtons = await page.locator("button").evaluateAll((buttons) =>
+    buttons.filter(
+      (button) =>
+        !button.getAttribute("aria-label") && !button.textContent?.trim(),
+    ).length,
+  );
+  expect(unnamedButtons).toBe(0);
+});
+
 test("approved visual baselines — customer workflow desktop", async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await openCustomerDemo(page);

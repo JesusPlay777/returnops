@@ -33,7 +33,7 @@ import { LocaleSwitch } from "./locale-switch";
 import OperationsReview from "./operations-review";
 import { operationsPatternStyles } from "./pattern-styles";
 import { ReturnStatusBadge } from "./return-status-badge";
-import { operationsSurfaceStyles } from "./surface-styles";
+import { operationsSurfaceStyles, sharedSurfaceStyles } from "./surface-styles";
 
 type Locale = "en" | "es";
 type QueueState =
@@ -55,6 +55,11 @@ const copy = {
   en: {
     role: "Operations",
     demo: "Demo",
+    skipToContent: "Skip to main content",
+    navigation: "Operations navigation",
+    statusSummary: "Return status summary",
+    ordering: "Ordering",
+    close: "Close",
     overview: "Overview",
     requestsNav: "Return requests",
     notifications: "Notifications",
@@ -103,6 +108,11 @@ const copy = {
   es: {
     role: "Operaciones",
     demo: "Demo",
+    skipToContent: "Saltar al contenido principal",
+    navigation: "Navegación de operaciones",
+    statusSummary: "Resumen de estados de devolución",
+    ordering: "Orden",
+    close: "Cerrar",
     overview: "Resumen",
     requestsNav: "Solicitudes",
     notifications: "Notificaciones",
@@ -399,12 +409,15 @@ export default function OperationsQueue({
 
   return (
     <div className={operationsSurfaceStyles.page}>
+      <a className={sharedSurfaceStyles.skipLink} href="#operations-main">
+        {t.skipToContent}
+      </a>
       <aside className={`${operationsSurfaceStyles.sidebar} ${operationsPatternStyles.sidebar}`}>
         <div className={operationsPatternStyles.sidebarBrand}>ReturnOps</div>
         <DemoBadge variant="operations">{t.demo}</DemoBadge>
-        <nav aria-label="Operations navigation">
+        <nav aria-label={t.navigation}>
           <span><b aria-hidden="true">⌂</b>{t.overview}</span>
-          <span className={operationsPatternStyles.navActive}><b aria-hidden="true">▤</b>{t.requestsNav}</span>
+          <span aria-current="page" className={operationsPatternStyles.navActive}><b aria-hidden="true">▤</b>{t.requestsNav}</span>
           <span><b aria-hidden="true">○</b>{t.notifications}</span>
           <span><b aria-hidden="true">⚙</b>{t.settings}</span>
           <button onClick={onSwitchToCustomer} type="button"><b aria-hidden="true">♙</b>{t.customerView}</button>
@@ -434,16 +447,17 @@ export default function OperationsQueue({
           <button className={operationsPatternStyles.mobileSwitch} onClick={onSwitchToCustomer} type="button">{t.customerView}</button>
         </header>
 
-        <main className={operationsSurfaceStyles.main}>
+        <main className={operationsSurfaceStyles.main} id="operations-main">
           <div className={operationsPatternStyles.heading}>
             <div><p>{t.role}</p><h1>{t.title}</h1><span>{t.intro}</span></div>
           </div>
 
-          <section className={`${operationsSurfaceStyles.stats} ${operationsPatternStyles.stats}`} aria-label="Return status summary">
+          <section className={`${operationsSurfaceStyles.stats} ${operationsPatternStyles.stats}`} aria-label={t.statusSummary}>
             {statusCards.map((card) => {
               const label = card.status === "SUBMITTED" ? t.submitted : card.status === "NEEDS_INFORMATION" ? t.needsInfo : card.status === "APPROVED" ? t.approved : t.rejected;
               return (
                 <button
+                  aria-pressed={statusFilter === card.status}
                   className={operationsSurfaceStyles.statCard}
                   data-active={statusFilter === card.status}
                   data-status={card.status}
@@ -478,7 +492,7 @@ export default function OperationsQueue({
                 </select>
               </label>
               <label className={operationsPatternStyles.thirdFilter}>
-                <span className="sr-only">Ordering</span>
+                <span className="sr-only">{t.ordering}</span>
                 <select className={fieldStyles.operationsSelect} onChange={(event) => changeOrdering(event.target.value as OperationsOrdering)} value={ordering}>
                   <option value="-updated_at">{t.newest}</option>
                   <option value="updated_at">{t.oldest}</option>
@@ -538,7 +552,7 @@ export default function OperationsQueue({
           request={review}
         />
       )}
-      {notice && <div className={operationsSurfaceStyles.toast} role="status">✓ {notice}<button className={operationsPatternStyles.toastClose} aria-label="Close" onClick={() => setNotice(null)} type="button">×</button></div>}
+      {notice && <div className={operationsSurfaceStyles.toast} role="status">✓ {notice}<button className={operationsPatternStyles.toastClose} aria-label={t.close} onClick={() => setNotice(null)} type="button">×</button></div>}
     </div>
   );
 }
@@ -567,7 +581,7 @@ function DesktopQueue({
           {requests.map((request) => (
             <Fragment key={request.id}>
               <tr data-expanded={expanded.has(request.id)}>
-                <td><button className={operationsPatternStyles.rowToggle} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button"><span aria-hidden="true">{expanded.has(request.id) ? "⌄" : "›"}</span>{request.reference}</button></td>
+                <td><button aria-controls={expanded.has(request.id) ? `desktop-return-${request.id}` : undefined} className={operationsPatternStyles.rowToggle} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button"><span aria-hidden="true">{expanded.has(request.id) ? "⌄" : "›"}</span>{request.reference}</button></td>
                 <td>{request.customer_name}</td>
                 <td>{request.item_count}</td>
                 <td>{formatMoney(request.total_value, request.currency, locale)}</td>
@@ -575,7 +589,7 @@ function DesktopQueue({
                 <td>{formatDate(request.updated_at, locale)}</td>
               </tr>
               {expanded.has(request.id) && (
-                <tr className={operationsPatternStyles.expandedRow}><td colSpan={6}><ExpandedRequest locale={locale} onOpenReview={onOpenReview} state={details[request.id]} /></td></tr>
+                <tr className={operationsPatternStyles.expandedRow}><td colSpan={6}><ExpandedRequest id={`desktop-return-${request.id}`} locale={locale} onOpenReview={onOpenReview} state={details[request.id]} /></td></tr>
               )}
             </Fragment>
           ))}
@@ -592,7 +606,7 @@ function MobileQueue(props: Parameters<typeof DesktopQueue>[0]) {
     <div className={operationsSurfaceStyles.mobileQueue}>
       {requests.map((request) => (
         <article className={operationsSurfaceStyles.mobileCard} key={request.id}>
-          <button className={`${operationsSurfaceStyles.mobileCardHeader} ${operationsPatternStyles.mobileCardHeader}`} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button">
+          <button aria-controls={expanded.has(request.id) ? `mobile-return-${request.id}` : undefined} className={`${operationsSurfaceStyles.mobileCardHeader} ${operationsPatternStyles.mobileCardHeader}`} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button">
             <span className={operationsPatternStyles.mobileChevron} aria-hidden="true">{expanded.has(request.id) ? "⌃" : "⌄"}</span>
             <strong>{request.reference}</strong>
             <StatusBadge locale={locale} status={request.status as OperationsReturnStatus} />
@@ -600,7 +614,7 @@ function MobileQueue(props: Parameters<typeof DesktopQueue>[0]) {
             <span className={operationsPatternStyles.mobileCustomer}>{request.customer_name}</span>
             <small>{request.item_count} {t.items.toLowerCase()} · {formatMoney(request.total_value, request.currency, locale)} · {formatDate(request.updated_at, locale)}</small>
           </button>
-          {expanded.has(request.id) && <ExpandedRequest locale={locale} onOpenReview={onOpenReview} state={details[request.id]} />}
+          {expanded.has(request.id) && <ExpandedRequest id={`mobile-return-${request.id}`} locale={locale} onOpenReview={onOpenReview} state={details[request.id]} />}
         </article>
       ))}
     </div>
@@ -608,19 +622,25 @@ function MobileQueue(props: Parameters<typeof DesktopQueue>[0]) {
 }
 
 function ExpandedRequest({
+  id,
   locale,
   onOpenReview,
   state,
 }: {
+  id: string;
   locale: Locale;
   onOpenReview: (request: ReturnRequestDetail) => void;
   state?: ExpandedState;
 }) {
   const t = copy[locale];
-  if (!state || state.status === "loading") return <QueueMessage loading message={t.loading} compact />;
-  if (state.status === "error") return <div className={operationsPatternStyles.inlineError}>{t.detailError}: {state.error.message}</div>;
+  if (!state || state.status === "loading") {
+    return <div id={id}><QueueMessage loading message={t.loading} compact /></div>;
+  }
+  if (state.status === "error") {
+    return <div className={operationsPatternStyles.inlineError} id={id} role="alert">{t.detailError}: {state.error.message}</div>;
+  }
   return (
-    <div className={operationsSurfaceStyles.expandedPanel}>
+    <div className={operationsSurfaceStyles.expandedPanel} id={id}>
       <div className={`${operationsSurfaceStyles.expandedHeader} ${operationsPatternStyles.expandedHeader}`}><strong>{t.returnItems(state.data.item_count)}</strong><button onClick={() => onOpenReview(state.data)} type="button">{t.openFull} →</button></div>
       <div className={`${operationsSurfaceStyles.hierarchy} ${operationsPatternStyles.hierarchy}`}>
         {state.data.items.map((item) => (

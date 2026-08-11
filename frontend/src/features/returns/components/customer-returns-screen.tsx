@@ -4,6 +4,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type FormEvent,
 } from "react";
@@ -22,7 +23,10 @@ import { LocaleSwitch } from "@/features/returns/components/locale-switch";
 import OperationsQueue from "@/features/returns/components/operations-queue";
 import { customerPatternStyles } from "@/features/returns/components/pattern-styles";
 import { ReturnStatusBadge } from "@/features/returns/components/return-status-badge";
-import { customerSurfaceStyles } from "@/features/returns/components/surface-styles";
+import {
+  customerSurfaceStyles,
+  sharedSurfaceStyles,
+} from "@/features/returns/components/surface-styles";
 import type {
   CatalogReturnCreateInput,
   DemoOrder,
@@ -32,6 +36,7 @@ import type {
   ReturnStatus,
 } from "@/features/returns/types";
 import { ApiError, toApiError } from "@/lib/api/client";
+import { useModalDialog } from "@/lib/a11y/use-modal-dialog";
 import { useDemoSession } from "@/providers/demo-session-provider";
 
 type Locale = "en" | "es";
@@ -54,6 +59,8 @@ const PAGE_SIZE = 5;
 const copy = {
   en: {
     demo: "Interactive demo",
+    demoRole: "Demo role",
+    skipToContent: "Skip to main content",
     customer: "Customer",
     operations: "Operations",
     soon: "Soon",
@@ -122,6 +129,8 @@ const copy = {
   },
   es: {
     demo: "Demo interactiva",
+    demoRole: "Rol de demostración",
+    skipToContent: "Saltar al contenido principal",
     customer: "Cliente",
     operations: "Operaciones",
     soon: "Pronto",
@@ -253,7 +262,9 @@ export default function CustomerReturnsScreen() {
     }
 
     document.getElementById("return-detail")?.scrollIntoView({
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
       block: "start",
     });
   }, [detailState.status]);
@@ -356,6 +367,9 @@ export default function CustomerReturnsScreen() {
 
   return (
     <div className={customerSurfaceStyles.appShell}>
+      <a className={sharedSurfaceStyles.skipLink} href="#top">
+        {t.skipToContent}
+      </a>
       <header className={customerSurfaceStyles.header}>
         <a className={customerPatternStyles.brand} href="#top" aria-label="ReturnOps home">
           <span className={customerPatternStyles.brandMark} aria-hidden="true">R</span>
@@ -372,11 +386,12 @@ export default function CustomerReturnsScreen() {
         </div>
       </header>
 
-      <div className={`${customerSurfaceStyles.roleBar} ${customerPatternStyles.roleBar}`} aria-label="Demo role">
-        <button className={customerPatternStyles.roleActive} type="button">
+      <div className={`${customerSurfaceStyles.roleBar} ${customerPatternStyles.roleBar}`} aria-label={t.demoRole} role="group">
+        <button aria-pressed="true" className={customerPatternStyles.roleActive} type="button">
           {t.customer}
         </button>
         <button
+          aria-pressed="false"
           disabled={!sessionReady}
           onClick={() => setRole("operations")}
           type="button"
@@ -823,6 +838,8 @@ function ReturnEditor({
   const [selections, setSelections] = useState<CatalogItemSelectionState>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<ApiError | null>(null);
+  const dialogRef = useRef<HTMLElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const loadOrders = useCallback(() => {
     setOrders(null);
@@ -848,13 +865,12 @@ function ReturnEditor({
     };
   }, []);
 
-  useEffect(() => {
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape" && !saving) onCancel();
-    }
-    document.addEventListener("keydown", closeOnEscape);
-    return () => document.removeEventListener("keydown", closeOnEscape);
-  }, [onCancel, saving]);
+  useModalDialog({
+    canClose: !saving,
+    dialogRef,
+    initialFocusRef: searchInputRef,
+    onClose: onCancel,
+  });
 
   const visibleOrders = useMemo(() => {
     const normalized = query.trim().toLocaleUpperCase();
@@ -939,13 +955,20 @@ function ReturnEditor({
   }
 
   return (
-    <div className={customerSurfaceStyles.modalBackdrop} role="presentation" onMouseDown={onCancel}>
+    <div
+      className={customerSurfaceStyles.modalBackdrop}
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget && !saving) onCancel();
+      }}
+      role="presentation"
+    >
       <section
         aria-labelledby="return-editor-title"
         aria-modal="true"
         className={`${customerSurfaceStyles.catalogModal} ${customerPatternStyles.modal}`}
-        onMouseDown={(event) => event.stopPropagation()}
+        ref={dialogRef}
         role="dialog"
+        tabIndex={-1}
       >
         <div className={`${customerSurfaceStyles.modalHeader} ${customerPatternStyles.modalHeader}`}>
           <div>
@@ -960,11 +983,11 @@ function ReturnEditor({
           <label>
             <span>{t.orderSearch}</span>
             <input
-              autoFocus
               className={fieldStyles.customerSearch}
               maxLength={40}
               onChange={(event) => setQuery(event.target.value)}
               placeholder={t.orderSearchPlaceholder}
+              ref={searchInputRef}
               value={query}
             />
           </label>

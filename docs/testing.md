@@ -53,6 +53,16 @@ Run the complete browser suite:
 npm run test:e2e
 ```
 
+Run the focused accessibility contract while iterating on interface code:
+
+```bash
+npm run test:a11y
+```
+
+This check covers landmarks, language and selected-state semantics, modal focus
+containment and restoration, and unnamed buttons. It complements ESLint and
+does not replace the complete lifecycle or visual suite.
+
 The lifecycle test creates a new isolated visitor, restores that visitor's fictional dataset, submits a return, requests information, resubmits it, approves it, and verifies the final five-event history. It never selects or submits a visitor UUID.
 
 The responsive audit covers customer and operations screens at 1440px and 390px, in English and Spanish. Representative screenshots live in `frontend/e2e/visual-baselines`.
@@ -70,3 +80,6 @@ npm run test:e2e:update
 ```
 
 Failure traces, videos, and screenshots are written to ignored `test-results` and `playwright-report` directories.
+
+The interface architecture and baseline policy are documented in the
+[frontend interface system](frontend-interface-system.md).

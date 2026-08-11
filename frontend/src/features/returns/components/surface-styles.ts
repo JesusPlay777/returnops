@@ -1,5 +1,13 @@
 const customerContainer =
   "mx-auto w-[min(1180px,calc(100%-48px))] max-[620px]:w-[min(calc(100%-32px),1180px)]";
+const customerMessageSurface =
+  "mt-8 flex min-h-[170px] items-center justify-center gap-3 rounded-2xl border border-dashed border-border text-[13px] text-text-secondary";
+const workflowHeadingRow = "flex items-center justify-between gap-4";
+
+export const sharedSurfaceStyles = {
+  skipLink:
+    "sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-lg focus:bg-surface focus:px-4 focus:py-3 focus:text-[12px] focus:font-bold focus:text-ink focus:shadow-surface",
+} as const;
 
 export const customerSurfaceStyles = {
   appShell:
@@ -21,10 +29,8 @@ export const customerSurfaceStyles = {
     "overflow-hidden rounded-[14px] border border-border bg-surface",
   pagination:
     "mt-6 grid grid-cols-[1fr_auto_1fr] items-center gap-[18px] max-[620px]:grid-cols-2 [&>span]:max-[620px]:col-span-full [&>span]:max-[620px]:row-start-1 [&>span]:max-[620px]:text-center [&>button]:max-[620px]:w-full",
-  loadingState:
-    "mt-8 flex min-h-[170px] items-center justify-center gap-3 rounded-2xl border border-dashed border-border text-[13px] text-text-secondary",
-  emptyState:
-    "mt-8 flex min-h-[170px] items-center justify-center gap-3 rounded-2xl border border-dashed border-border text-[13px] text-text-secondary",
+  loadingState: customerMessageSurface,
+  emptyState: customerMessageSurface,
   errorState:
     "mt-8 flex min-h-[170px] items-center justify-between gap-6 rounded-2xl border border-dashed border-[#edc8c4] bg-[#fffafa] p-6",
   detailHeader:
@@ -87,14 +93,14 @@ export const workflowSurfaceStyles = {
     "grid min-h-[108px] grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-4 rounded-[14px] border border-border bg-surface p-[19px] max-[640px]:grid-cols-[44px_1fr]",
   itemForm:
     "mt-7 rounded-2xl border border-[#b8d9d4] bg-surface p-6 shadow-[0_18px_45px_rgb(23_35_33_/_7%)]",
-  formHeading: "flex items-center justify-between gap-4",
+  formHeading: workflowHeadingRow,
   formGrid:
     "mt-[22px] grid grid-cols-[0.7fr_0.7fr_1.2fr] gap-4 max-[640px]:grid-cols-1",
   formActions: "mt-5 flex items-center justify-end gap-4",
   evidenceItems: "mt-7 grid gap-3",
   evidenceItem:
     "rounded-2xl border border-border bg-surface p-[22px]",
-  evidenceItemHeader: "flex items-center justify-between gap-4",
+  evidenceItemHeader: workflowHeadingRow,
   evidenceGrid:
     "mt-5 grid grid-cols-3 gap-[10px] max-[640px]:grid-cols-1",
   evidenceCard:

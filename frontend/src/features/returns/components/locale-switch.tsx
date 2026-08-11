@@ -24,7 +24,7 @@ const activeButtonStyles: Record<LocaleSwitchVariant, string> = {
 const inactiveButtonStyles: Record<LocaleSwitchVariant, string> = {
   customer: "bg-transparent text-text-secondary",
   operations:
-    "bg-transparent text-text-secondary max-[760px]:text-[rgb(255_255_255_/_72%)]",
+    "bg-transparent text-text-secondary max-[760px]:text-[rgb(255_255_255_/_92%)]",
 };
 
 export function LocaleSwitch({
@@ -36,10 +36,13 @@ export function LocaleSwitch({
   onLocaleChange: (locale: Locale) => void;
   variant: LocaleSwitchVariant;
 }) {
+  const label = locale === "es" ? "Idioma" : "Language";
+
   return (
-    <div aria-label="Language" className={containerStyles[variant]}>
+    <div aria-label={label} className={containerStyles[variant]} role="group">
       {(["en", "es"] as const).map((option) => (
         <button
+          aria-pressed={locale === option}
           className={`${buttonStyles[variant]} ${
             locale === option
               ? activeButtonStyles[variant]

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 
 import { transitionOperationsReturn } from "@/features/returns/api";
 import type {
@@ -12,6 +12,7 @@ import type {
   StatusActor,
 } from "@/features/returns/types";
 import { toApiError } from "@/lib/api/client";
+import { useModalDialog } from "@/lib/a11y/use-modal-dialog";
 
 import { buttonStyles, fieldStyles } from "./control-styles";
 import { reviewPatternStyles } from "./pattern-styles";
@@ -231,28 +232,18 @@ export default function OperationsReview({
   const [error, setError] = useState<string | null>(null);
   const titleId = useId();
   const descriptionId = useId();
+  const noteErrorId = `${titleId}-note-error`;
+  const dialogRef = useRef<HTMLElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const submittingRef = useRef(false);
   const t = copy[locale];
   const requiresNote = operationsDecisionRequiresNote(decision);
 
-  useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-    const previousFocus = document.activeElement as HTMLElement | null;
-    document.body.style.overflow = "hidden";
-    closeButtonRef.current?.focus();
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && !submittingRef.current) onClose();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previousFocus?.focus();
-    };
-  }, [onClose]);
+  useModalDialog({
+    canClose: !submitting,
+    dialogRef,
+    initialFocusRef: closeButtonRef,
+    onClose,
+  });
 
   function selectDecision(nextDecision: OperationsTransitionStatus) {
     setDecision(nextDecision);
@@ -273,7 +264,6 @@ export default function OperationsReview({
 
   async function confirmDecision() {
     if (!decision || submitting) return;
-    submittingRef.current = true;
     setSubmitting(true);
     setError(null);
     try {
@@ -286,7 +276,6 @@ export default function OperationsReview({
       setError(toApiError(transitionError).message);
       setConfirming(false);
     } finally {
-      submittingRef.current = false;
       setSubmitting(false);
     }
   }
@@ -297,13 +286,16 @@ export default function OperationsReview({
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !submitting) onClose();
       }}
+      role="presentation"
     >
       <section
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
         className={reviewSurfaceStyles.dialog}
+        ref={dialogRef}
         role="dialog"
+        tabIndex={-1}
       >
         <header className={`${reviewSurfaceStyles.header} ${reviewPatternStyles.header}`}>
           <div>
@@ -436,6 +428,7 @@ export default function OperationsReview({
                       <span>{requiresNote ? t.noteRequired : t.noteOptional}</span>
                     </label>
                     <textarea
+                      aria-describedby={validationError ? noteErrorId : undefined}
                       aria-invalid={validationError}
                       className={fieldStyles.operationsNote}
                       disabled={submitting}
@@ -451,7 +444,7 @@ export default function OperationsReview({
                       value={note}
                     />
                     <div className={reviewPatternStyles.noteMeta}>
-                      <span>{validationError ? t.noteError : ""}</span>
+                      <span id={noteErrorId}>{validationError ? t.noteError : ""}</span>
                       <small>{note.length}/2000</small>
                     </div>
                   </div>
@@ -464,7 +457,7 @@ export default function OperationsReview({
                     {t.continue} →
                   </button>
                 ) : (
-                  <div className={`${reviewSurfaceStyles.confirmation} ${reviewPatternStyles.feedback}`} role="alert">
+                  <div className={`${reviewSurfaceStyles.confirmation} ${reviewPatternStyles.feedback}`} role="status">
                     <strong>{t.confirmationTitle}</strong>
                     <p>{t.confirmation(decisionLabel(locale, decision), request.reference)}</p>
                     <div className={reviewPatternStyles.confirmationActions}>

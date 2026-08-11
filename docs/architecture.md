@@ -91,6 +91,13 @@ the table; mobile replaces rows with expandable request cards. Dataset reset
 continues through the shared CSRF-aware client and remains scoped to the
 current visitor.
 
+The frontend interface is implemented with Tailwind CSS 4. Semantic theme
+tokens and a minimal base layer live in `globals.css`; reusable controls,
+surfaces, and contextual patterns remain in three statically discoverable
+TypeScript catalogs. The complete conventions, accessibility contract, and
+visual verification workflow are defined in the
+[frontend interface system](frontend-interface-system.md).
+
 Next.js Route Handlers are not used as a general proxy for the returns API.
 The existing platform-health handler remains server-side because it checks
 container connectivity and does not participate in visitor ownership.
@@ -120,7 +127,7 @@ Visitor session
   -> customer adds fictional items and evidence
   -> customer submits the return
   -> operations sees it in the expandable queue [implemented]
-  -> operations changes its state [API implemented; interface pending]
+  -> operations changes its state [implemented]
   -> customer sees the updated state and timeline
 ```
 
