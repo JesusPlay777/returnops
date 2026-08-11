@@ -21,6 +21,7 @@ import { LoadingSpinner } from "@/features/returns/components/loading-spinner";
 import { LocaleSwitch } from "@/features/returns/components/locale-switch";
 import OperationsQueue from "@/features/returns/components/operations-queue";
 import { ReturnStatusBadge } from "@/features/returns/components/return-status-badge";
+import { customerSurfaceStyles } from "@/features/returns/components/surface-styles";
 import type {
   CatalogReturnCreateInput,
   DemoOrder,
@@ -355,14 +356,14 @@ export default function CustomerReturnsScreen() {
   }
 
   return (
-    <div className={styles.appShell}>
-      <header className={styles.header}>
+    <div className={customerSurfaceStyles.appShell}>
+      <header className={customerSurfaceStyles.header}>
         <a className={styles.brand} href="#top" aria-label="ReturnOps home">
           <span className={styles.brandMark} aria-hidden="true">R</span>
           <span>ReturnOps</span>
         </a>
 
-        <div className={styles.headerTools}>
+        <div className={customerSurfaceStyles.headerTools}>
           <DemoBadge variant="customer">{t.demo}</DemoBadge>
           <LocaleSwitch
             locale={locale}
@@ -372,7 +373,7 @@ export default function CustomerReturnsScreen() {
         </div>
       </header>
 
-      <div className={styles.roleBar} aria-label="Demo role">
+      <div className={`${customerSurfaceStyles.roleBar} ${styles.roleBar}`} aria-label="Demo role">
         <button className={styles.roleActive} type="button">
           {t.customer}
         </button>
@@ -386,7 +387,7 @@ export default function CustomerReturnsScreen() {
       </div>
 
       <main id="top">
-        <section className={styles.hero}>
+        <section className={`${customerSurfaceStyles.hero} ${styles.hero}`}>
           <div>
             <p className={styles.eyebrow}>{t.eyebrow}</p>
             <h1>{t.title}</h1>
@@ -402,7 +403,7 @@ export default function CustomerReturnsScreen() {
             </button>
           </div>
 
-          <aside className={styles.sessionCard}>
+          <aside className={`${customerSurfaceStyles.sessionCard} ${styles.sessionCard}`}>
             <span className={styles.sessionIcon} aria-hidden="true">✓</span>
             <div>
               <strong>{t.sessionReady}</strong>
@@ -411,8 +412,8 @@ export default function CustomerReturnsScreen() {
           </aside>
         </section>
 
-        <section className={styles.returnsSection} aria-labelledby="returns-title">
-          <div className={styles.sectionHeader}>
+        <section className={customerSurfaceStyles.returnsPanel} aria-labelledby="returns-title">
+          <div className={`${customerSurfaceStyles.sectionHeader} ${styles.sectionHeader}`}>
             <div>
               <p className={styles.eyebrow}>{t.customer}</p>
               <h2 id="returns-title">{t.requests}</h2>
@@ -450,12 +451,12 @@ export default function CustomerReturnsScreen() {
           )}
 
           {listState.status === "ready" && listState.data.results.length === 0 && (
-            <div className={styles.emptyState}>{t.empty}</div>
+            <div className={customerSurfaceStyles.emptyState}>{t.empty}</div>
           )}
 
           {listState.status === "ready" && listState.data.results.length > 0 && (
             <>
-              <div className={styles.tableFrame}>
+              <div className={`${customerSurfaceStyles.tableFrame} ${styles.tableFrame}`}>
                 <table>
                   <thead>
                     <tr>
@@ -514,9 +515,9 @@ export default function CustomerReturnsScreen() {
                 </table>
               </div>
 
-              <div className={styles.mobileReturns} aria-label={t.requests}>
+              <div className={customerSurfaceStyles.mobileReturns} aria-label={t.requests}>
                 {listState.data.results.map((returnRequest) => (
-                  <article className={styles.mobileReturnCard} key={returnRequest.id}>
+                  <article className={`${customerSurfaceStyles.mobileReturnCard} ${styles.mobileReturnCard}`} key={returnRequest.id}>
                     <button
                       aria-label={returnRequest.reference}
                       onClick={() => openDetail(returnRequest.id)}
@@ -550,7 +551,7 @@ export default function CustomerReturnsScreen() {
                 ))}
               </div>
 
-              <div className={styles.pagination}>
+              <div className={`${customerSurfaceStyles.pagination} ${styles.pagination}`}>
                 <button
                   className={buttonStyles.customerPagination}
                   disabled={!listState.data.previous}
@@ -594,7 +595,7 @@ export default function CustomerReturnsScreen() {
         )}
       </main>
 
-      <footer className={styles.footer}>
+      <footer className={`${customerSurfaceStyles.footer} ${styles.footer}`}>
         <span>ReturnOps</span>
         <span>Fictional data · Clean-room implementation</span>
       </footer>
@@ -617,7 +618,7 @@ export default function CustomerReturnsScreen() {
       )}
 
       {notice && (
-        <div className={styles.toast} role="status">
+        <div className={`${customerSurfaceStyles.toast} ${styles.toast}`} role="status">
           <span aria-hidden="true">✓</span>
           {notice}
           <button onClick={() => setNotice(null)} type="button" aria-label={t.close}>
@@ -631,7 +632,7 @@ export default function CustomerReturnsScreen() {
 
 function LoadingState({ message }: { message: string }) {
   return (
-    <div className={styles.loadingState} role="status">
+    <div className={customerSurfaceStyles.loadingState} role="status">
       <LoadingSpinner />
       {message}
     </div>
@@ -650,7 +651,7 @@ function ErrorState({
   title: string;
 }) {
   return (
-    <div className={styles.errorState} role="alert">
+    <div className={`${customerSurfaceStyles.errorState} ${styles.errorState}`} role="alert">
       <div>
         <strong>{title}</strong>
         <p>{detail}</p>
@@ -684,7 +685,7 @@ function ReturnDetail({
 
   if (state.status === "loading") {
     return (
-      <section className={styles.detailSection} id="return-detail" aria-live="polite">
+      <section className={customerSurfaceStyles.detailPanel} id="return-detail" aria-live="polite">
         <LoadingState message={t.detailLoading} />
       </section>
     );
@@ -692,8 +693,8 @@ function ReturnDetail({
 
   if (state.status === "error") {
     return (
-      <section className={styles.detailSection} id="return-detail">
-        <div className={styles.errorState} role="alert">
+      <section className={customerSurfaceStyles.detailPanel} id="return-detail">
+        <div className={`${customerSurfaceStyles.errorState} ${styles.errorState}`} role="alert">
           <div>
             <strong>{t.detailError}</strong>
             <p>{errorDetail(state.error, t.detailError)}</p>
@@ -712,8 +713,8 @@ function ReturnDetail({
   const editable = data.status === "DRAFT" || data.status === "NEEDS_INFORMATION";
 
   return (
-    <section className={styles.detailSection} id="return-detail" aria-labelledby="return-detail-title">
-      <div className={styles.detailHeader}>
+    <section className={customerSurfaceStyles.detailPanel} id="return-detail" aria-labelledby="return-detail-title">
+      <div className={`${customerSurfaceStyles.detailHeader} ${styles.detailHeader}`}>
         <div>
           <div className={styles.detailReference}>
             <p className={styles.eyebrow}>{t.reference}</p>
@@ -722,7 +723,7 @@ function ReturnDetail({
           <h2 id="return-detail-title">{data.reference}</h2>
           <p>{data.customer_name} · {data.order_reference}</p>
         </div>
-        <div className={styles.detailActions}>
+        <div className={customerSurfaceStyles.detailActions}>
           {editable && (
             <button className={buttonStyles.customerSecondary} onClick={() => onContinue(data)} type="button">
               {t.continueReturn}
@@ -732,19 +733,19 @@ function ReturnDetail({
         </div>
       </div>
 
-      <dl className={styles.detailMeta}>
+      <dl className={`${customerSurfaceStyles.detailMeta} ${styles.detailMeta}`}>
         <div><dt>{t.order}</dt><dd>{data.order_reference}</dd></div>
         <div><dt>{t.email}</dt><dd>{data.customer_email}</dd></div>
         <div><dt>{t.value}</dt><dd>{formatMoney(data.total_value, data.currency, locale)}</dd></div>
         <div><dt>{t.updated}</dt><dd>{formatDate(data.updated_at, locale)}</dd></div>
       </dl>
 
-      <div className={styles.detailGrid}>
+      <div className={`${customerSurfaceStyles.detailGrid} ${styles.detailGrid}`}>
         <div>
           <h3>{t.requestItems}</h3>
-          <div className={styles.itemList}>
+          <div className={customerSurfaceStyles.detailItemList}>
             {data.items.map((item) => (
-              <article className={styles.itemCard} key={item.id}>
+              <article className={`${customerSurfaceStyles.detailItemCard} ${styles.itemCard}`} key={item.id}>
                 <div>
                   <span>{item.sku}</span>
                   <h4>{item.product_name}</h4>
@@ -939,15 +940,15 @@ function ReturnEditor({
   }
 
   return (
-    <div className={styles.modalBackdrop} role="presentation" onMouseDown={onCancel}>
+    <div className={customerSurfaceStyles.modalBackdrop} role="presentation" onMouseDown={onCancel}>
       <section
         aria-labelledby="return-editor-title"
         aria-modal="true"
-        className={`${styles.modal} ${styles.catalogModal}`}
+        className={`${customerSurfaceStyles.catalogModal} ${styles.modal}`}
         onMouseDown={(event) => event.stopPropagation()}
         role="dialog"
       >
-        <div className={styles.modalHeader}>
+        <div className={`${customerSurfaceStyles.modalHeader} ${styles.modalHeader}`}>
           <div>
             <p className={styles.eyebrow}>{t.customer}</p>
             <h2 id="return-editor-title">{t.createTitle}</h2>
@@ -956,7 +957,7 @@ function ReturnEditor({
           <button className={buttonStyles.customerIcon} onClick={onCancel} type="button" aria-label={t.close}>×</button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <form className={customerSurfaceStyles.modalForm} onSubmit={handleSubmit}>
           <label className={styles.catalogSearch}>
             <span>{t.orderSearch}</span>
             <input
@@ -970,14 +971,14 @@ function ReturnEditor({
           </label>
 
           {orders === null && !loadError && (
-            <div className={styles.catalogMessage} role="status">
+            <div className={customerSurfaceStyles.catalogMessage} role="status">
               <LoadingSpinner />
               {t.loadingOrders}
             </div>
           )}
 
           {loadError && (
-            <div className={styles.formError} role="alert">
+            <div className={`${customerSurfaceStyles.formError} ${styles.formError}`} role="alert">
               <strong>{t.formError}</strong>
               <span>{errorDetail(loadError, t.formError)}</span>
               <button onClick={loadOrders} type="button">{t.retry}</button>
@@ -985,17 +986,17 @@ function ReturnEditor({
           )}
 
           {orders && orders.length === 0 && (
-            <div className={styles.catalogMessage}>{t.noOrders}</div>
+            <div className={customerSurfaceStyles.catalogMessage}>{t.noOrders}</div>
           )}
 
           {orders && orders.length > 0 && !selectedOrder && (
-            <section className={styles.orderResults} aria-label={t.availableOrders}>
+            <section className={`${customerSurfaceStyles.orderResults} ${styles.orderResults}`} aria-label={t.availableOrders}>
               <strong>{t.availableOrders}</strong>
               {visibleOrders.length === 0 && (
-                <p className={styles.catalogMessage}>{t.noOrderMatch}</p>
+                <p className={customerSurfaceStyles.catalogMessage}>{t.noOrderMatch}</p>
               )}
               {visibleOrders.map((order) => (
-                <button key={order.id} onClick={() => chooseOrder(order)} type="button">
+                <button className={customerSurfaceStyles.orderResultButton} key={order.id} onClick={() => chooseOrder(order)} type="button">
                   <span><b>{order.order_reference}</b><small>{order.customer_name}</small></span>
                   <span><b>{order.items.length}</b><small>{t.items}</small></span>
                   <span>→</span>
@@ -1006,7 +1007,7 @@ function ReturnEditor({
 
           {selectedOrder && (
             <>
-              <section className={styles.selectedOrder}>
+              <section className={`${customerSurfaceStyles.selectedOrder} ${styles.selectedOrder}`}>
                 <div>
                   <small>{t.orderCustomer}</small>
                   <strong>{selectedOrder.customer_name}</strong>
@@ -1017,13 +1018,13 @@ function ReturnEditor({
                 </button>
               </section>
 
-              <section className={styles.catalogItems} aria-label={t.selectItems}>
+              <section className={`${customerSurfaceStyles.catalogItems} ${styles.catalogItems}`} aria-label={t.selectItems}>
                 <h3>{t.selectItems}</h3>
                 {selectedOrder.items.map((item) => {
                   const selection = selections[item.id];
                   return (
-                    <article data-selected={selection?.selected} key={item.id}>
-                      <label className={styles.catalogItemHeader}>
+                    <article className={customerSurfaceStyles.catalogItemCard} data-selected={selection?.selected} key={item.id}>
+                      <label className={`${customerSurfaceStyles.catalogItemHeader} ${styles.catalogItemHeader}`}>
                         <input
                           checked={selection?.selected ?? false}
                           className={fieldStyles.customerCheckbox}
@@ -1034,7 +1035,7 @@ function ReturnEditor({
                         <strong>{formatMoney(item.unit_price, selectedOrder.currency, locale)}</strong>
                       </label>
                       {selection?.selected && (
-                        <div className={styles.catalogItemFields}>
+                        <div className={customerSurfaceStyles.catalogItemFields}>
                           <label>
                             <span>{t.quantity}</span>
                             <input
@@ -1078,13 +1079,13 @@ function ReturnEditor({
           )}
 
           {error && (
-            <div className={styles.formError} role="alert">
+            <div className={`${customerSurfaceStyles.formError} ${styles.formError}`} role="alert">
               <strong>{t.formError}</strong>
               <span>{errorDetail(error, t.formError)}</span>
             </div>
           )}
 
-          <div className={styles.formActions}>
+          <div className={customerSurfaceStyles.formActions}>
             <button className={buttonStyles.customerSecondary} disabled={saving} onClick={onCancel} type="button">{t.cancel}</button>
             <button
               className={buttonStyles.customerPrimaryCompact}

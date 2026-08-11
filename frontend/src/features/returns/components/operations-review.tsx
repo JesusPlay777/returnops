@@ -16,6 +16,7 @@ import { toApiError } from "@/lib/api/client";
 import styles from "./operations-review.module.css";
 import { buttonStyles, fieldStyles } from "./control-styles";
 import { ReturnStatusBadge } from "./return-status-badge";
+import { reviewSurfaceStyles } from "./surface-styles";
 
 type Locale = "en" | "es";
 
@@ -292,7 +293,7 @@ export default function OperationsReview({
 
   return (
     <div
-      className={styles.backdrop}
+      className={reviewSurfaceStyles.backdrop}
       onMouseDown={(event) => {
         if (event.target === event.currentTarget && !submitting) onClose();
       }}
@@ -301,13 +302,13 @@ export default function OperationsReview({
         aria-describedby={descriptionId}
         aria-labelledby={titleId}
         aria-modal="true"
-        className={styles.dialog}
+        className={reviewSurfaceStyles.dialog}
         role="dialog"
       >
-        <header className={styles.header}>
+        <header className={`${reviewSurfaceStyles.header} ${styles.header}`}>
           <div>
             <p>{t.eyebrow}</p>
-            <div className={styles.titleRow}>
+            <div className={`${reviewSurfaceStyles.titleRow} ${styles.titleRow}`}>
               <h2 id={titleId}>{request.reference}</h2>
               <ReturnStatusBadge status={request.status} variant="review">
                 {statusLabels[locale][request.status as OperationsReturnStatus]}
@@ -329,9 +330,9 @@ export default function OperationsReview({
           </button>
         </header>
 
-        <div className={styles.body}>
-          <div className={styles.contentColumn}>
-            <dl className={styles.summaryGrid}>
+        <div className={reviewSurfaceStyles.body}>
+          <div className={reviewSurfaceStyles.contentColumn}>
+            <dl className={`${reviewSurfaceStyles.summaryGrid} ${styles.summaryGrid}`}>
               <div><dt>{t.order}</dt><dd>{request.order_reference}</dd></div>
               <div><dt>{t.customer}</dt><dd>{request.customer_name}</dd></div>
               <div><dt>{t.email}</dt><dd>{request.customer_email}</dd></div>
@@ -339,21 +340,21 @@ export default function OperationsReview({
               <div><dt>{t.total}</dt><dd>{formatMoney(request.total_value, request.currency, locale)}</dd></div>
             </dl>
 
-            <section className={styles.detailSection}>
-              <div className={styles.sectionHeading}>
+            <section className={reviewSurfaceStyles.detailSection}>
+              <div className={`${reviewSurfaceStyles.sectionHeading} ${styles.sectionHeading}`}>
                 <span aria-hidden="true">▤</span>
                 <h3>{t.itemsTitle}</h3>
               </div>
-              <div className={styles.itemList}>
+              <div className={reviewSurfaceStyles.itemList}>
                 {request.items.map((item, index) => (
-                  <article className={styles.itemCard} key={item.id}>
+                  <article className={reviewSurfaceStyles.itemCard} key={item.id}>
                     <div className={styles.itemNumber}>{String(index + 1).padStart(2, "0")}</div>
                     <div className={styles.itemMain}>
-                      <div className={styles.itemTitle}>
+                      <div className={`${reviewSurfaceStyles.itemTitle} ${styles.itemTitle}`}>
                         <div><h4>{item.product_name}</h4><span>{item.sku}</span></div>
                         <strong>{formatMoney(item.line_total, request.currency, locale)}</strong>
                       </div>
-                      <dl className={styles.itemFacts}>
+                      <dl className={`${reviewSurfaceStyles.itemFacts} ${styles.itemFacts}`}>
                         <div><dt>{t.itemQuantity}</dt><dd>{item.quantity}</dd></div>
                         <div><dt>{t.reason}</dt><dd>{reasonLabels[locale][item.reason]}</dd></div>
                       </dl>
@@ -366,9 +367,9 @@ export default function OperationsReview({
                         {item.evidence.length === 0 ? (
                           <p>{t.noEvidence}</p>
                         ) : (
-                          <div className={styles.evidenceGrid}>
+                          <div className={reviewSurfaceStyles.evidenceGrid}>
                             {item.evidence.map((evidence) => (
-                              <div className={styles.evidenceCard} key={evidence.id}>
+                              <div className={`${reviewSurfaceStyles.evidenceCard} ${styles.evidenceCard}`} key={evidence.id}>
                                 <span aria-hidden="true">⌕</span>
                                 <div>
                                   <strong>{evidence.caption || evidenceLabels[locale][evidence.kind]}</strong>
@@ -385,8 +386,8 @@ export default function OperationsReview({
               </div>
             </section>
 
-            <section className={styles.detailSection}>
-              <div className={styles.sectionHeading}>
+            <section className={reviewSurfaceStyles.detailSection}>
+              <div className={`${reviewSurfaceStyles.sectionHeading} ${styles.sectionHeading}`}>
                 <span aria-hidden="true">◷</span>
                 <h3>{t.timeline}</h3>
               </div>
@@ -405,7 +406,7 @@ export default function OperationsReview({
             </section>
           </div>
 
-          <aside className={styles.decisionColumn}>
+          <aside className={reviewSurfaceStyles.decisionColumn}>
             {request.status === "SUBMITTED" ? (
               <div className={styles.decisionPanel}>
                 <p className={styles.panelEyebrow}>{t.eyebrow}</p>
@@ -455,14 +456,14 @@ export default function OperationsReview({
                   </div>
                 )}
 
-                {error && <div className={styles.actionError} role="alert"><strong>{t.transitionError}</strong><span>{error}</span></div>}
+                {error && <div className={`${reviewSurfaceStyles.actionError} ${styles.actionError}`} role="alert"><strong>{t.transitionError}</strong><span>{error}</span></div>}
 
                 {!confirming || !decision ? (
                   <button className={buttonStyles.operationsReviewPrimary} disabled={!decision || submitting} onClick={prepareConfirmation} type="button">
                     {t.continue} →
                   </button>
                 ) : (
-                  <div className={styles.confirmation} role="alert">
+                  <div className={`${reviewSurfaceStyles.confirmation} ${styles.confirmation}`} role="alert">
                     <strong>{t.confirmationTitle}</strong>
                     <p>{t.confirmation(decisionLabel(locale, decision), request.reference)}</p>
                     <div>
@@ -473,7 +474,7 @@ export default function OperationsReview({
                 )}
               </div>
             ) : (
-              <div className={styles.readOnlyPanel} data-status={request.status}>
+              <div className={`${reviewSurfaceStyles.readOnlyPanel} ${styles.readOnlyPanel}`} data-status={request.status}>
                 <span className={styles.readOnlyIcon} aria-hidden="true">
                   {request.status === "NEEDS_INFORMATION" ? "i" : request.status === "APPROVED" ? "✓" : "×"}
                 </span>

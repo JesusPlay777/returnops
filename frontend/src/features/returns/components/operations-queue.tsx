@@ -33,6 +33,7 @@ import { LoadingSpinner } from "./loading-spinner";
 import { LocaleSwitch } from "./locale-switch";
 import OperationsReview from "./operations-review";
 import { ReturnStatusBadge } from "./return-status-badge";
+import { operationsSurfaceStyles } from "./surface-styles";
 
 type Locale = "en" | "es";
 type QueueState =
@@ -397,8 +398,8 @@ export default function OperationsQueue({
   }
 
   return (
-    <div className={styles.page}>
-      <aside className={styles.sidebar}>
+    <div className={operationsSurfaceStyles.page}>
+      <aside className={`${operationsSurfaceStyles.sidebar} ${styles.sidebar}`}>
         <div className={styles.sidebarBrand}>ReturnOps</div>
         <DemoBadge variant="operations">{t.demo}</DemoBadge>
         <nav aria-label="Operations navigation">
@@ -413,8 +414,8 @@ export default function OperationsQueue({
         </button>
       </aside>
 
-      <div className={styles.workspace}>
-        <header className={styles.topbar}>
+      <div className={operationsSurfaceStyles.workspace}>
+        <header className={operationsSurfaceStyles.topbar}>
           <span className={styles.mobileBrand}>ReturnOps</span>
           <button
             aria-label={`${t.switchRole}: ${t.customerView}`}
@@ -433,16 +434,17 @@ export default function OperationsQueue({
           <button className={styles.mobileSwitch} onClick={onSwitchToCustomer} type="button">{t.customerView}</button>
         </header>
 
-        <main className={styles.main}>
+        <main className={operationsSurfaceStyles.main}>
           <div className={styles.heading}>
             <div><p>{t.role}</p><h1>{t.title}</h1><span>{t.intro}</span></div>
           </div>
 
-          <section className={styles.stats} aria-label="Return status summary">
+          <section className={`${operationsSurfaceStyles.stats} ${styles.stats}`} aria-label="Return status summary">
             {statusCards.map((card) => {
               const label = card.status === "SUBMITTED" ? t.submitted : card.status === "NEEDS_INFORMATION" ? t.needsInfo : card.status === "APPROVED" ? t.approved : t.rejected;
               return (
                 <button
+                  className={operationsSurfaceStyles.statCard}
                   data-active={statusFilter === card.status}
                   data-status={card.status}
                   key={card.status}
@@ -457,9 +459,9 @@ export default function OperationsQueue({
             })}
           </section>
 
-          <section className={styles.queueSection} aria-labelledby="operations-queue-title">
+          <section className={operationsSurfaceStyles.queueSection} aria-labelledby="operations-queue-title">
             <h2 className="sr-only" id="operations-queue-title">{t.title}</h2>
-            <div className={styles.filters}>
+            <div className={`${operationsSurfaceStyles.filters} ${styles.filters}`}>
               <label className={styles.searchField}>
                 <span className="sr-only">{t.search}</span>
                 <b aria-hidden="true">⌕</b>
@@ -492,7 +494,7 @@ export default function OperationsQueue({
 
             {(queue.status === "idle" || queue.status === "loading") && <QueueMessage loading message={t.loading} />}
             {queue.status === "error" && (
-              <div className={styles.errorState} role="alert">
+                <div className={`${operationsSurfaceStyles.errorState} ${styles.errorState}`} role="alert">
                 <div><strong>{t.error}</strong><p>{queue.error.message}</p></div>
                 <button className={buttonStyles.operationsSecondary} onClick={refresh} type="button">{t.retry}</button>
               </div>
@@ -516,7 +518,7 @@ export default function OperationsQueue({
                   onToggle={toggleExpanded}
                   requests={queue.data.results}
                 />
-                <div className={styles.pagination}>
+                <div className={`${operationsSurfaceStyles.pagination} ${styles.pagination}`}>
                   <button className={buttonStyles.operationsPagination} disabled={!queue.data.previous} onClick={() => { setQueue({ status: "loading" }); setPage((current) => Math.max(1, current - 1)); }} type="button">← {t.previous}</button>
                   <span>{t.page(page, totalPages)}</span>
                   <button className={`${buttonStyles.operationsPagination} justify-self-end`} disabled={!queue.data.next} onClick={() => { setQueue({ status: "loading" }); setPage((current) => current + 1); }} type="button">{t.next} →</button>
@@ -536,7 +538,7 @@ export default function OperationsQueue({
           request={review}
         />
       )}
-      {notice && <div className={styles.toast} role="status">✓ {notice}<button aria-label="Close" onClick={() => setNotice(null)} type="button">×</button></div>}
+      {notice && <div className={`${operationsSurfaceStyles.toast} ${styles.toast}`} role="status">✓ {notice}<button aria-label="Close" onClick={() => setNotice(null)} type="button">×</button></div>}
     </div>
   );
 }
@@ -558,7 +560,7 @@ function DesktopQueue({
 }) {
   const t = copy[locale];
   return (
-    <div className={styles.tableFrame}>
+    <div className={`${operationsSurfaceStyles.tableFrame} ${styles.tableFrame}`}>
       <table>
         <thead><tr><th>{t.reference}</th><th>{t.customer}</th><th>{t.items}</th><th>{t.value}</th><th>{t.status}</th><th>{t.updated}</th></tr></thead>
         <tbody>
@@ -587,10 +589,10 @@ function MobileQueue(props: Parameters<typeof DesktopQueue>[0]) {
   const { details, expanded, locale, onOpenReview, onToggle, requests } = props;
   const t = copy[locale];
   return (
-    <div className={styles.mobileQueue}>
+    <div className={operationsSurfaceStyles.mobileQueue}>
       {requests.map((request) => (
-        <article className={styles.mobileCard} key={request.id}>
-          <button className={styles.mobileCardHeader} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button">
+        <article className={`${operationsSurfaceStyles.mobileCard} ${styles.mobileCard}`} key={request.id}>
+          <button className={`${operationsSurfaceStyles.mobileCardHeader} ${styles.mobileCardHeader}`} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button">
             <span className={styles.mobileChevron} aria-hidden="true">{expanded.has(request.id) ? "⌃" : "⌄"}</span>
             <strong>{request.reference}</strong>
             <StatusBadge locale={locale} status={request.status as OperationsReturnStatus} />
@@ -618,11 +620,11 @@ function ExpandedRequest({
   if (!state || state.status === "loading") return <QueueMessage loading message={t.loading} compact />;
   if (state.status === "error") return <div className={styles.inlineError}>{t.detailError}: {state.error.message}</div>;
   return (
-    <div className={styles.expandedPanel}>
-      <div className={styles.expandedHeader}><strong>{t.returnItems(state.data.item_count)}</strong><button onClick={() => onOpenReview(state.data)} type="button">{t.openFull} →</button></div>
-      <div className={styles.hierarchy}>
+    <div className={`${operationsSurfaceStyles.expandedPanel} ${styles.expandedPanel}`}>
+      <div className={`${operationsSurfaceStyles.expandedHeader} ${styles.expandedHeader}`}><strong>{t.returnItems(state.data.item_count)}</strong><button onClick={() => onOpenReview(state.data)} type="button">{t.openFull} →</button></div>
+      <div className={`${operationsSurfaceStyles.hierarchy} ${styles.hierarchy}`}>
         {state.data.items.map((item) => (
-          <article className={styles.expandedItem} key={item.id}>
+          <article className={`${operationsSurfaceStyles.expandedItem} ${styles.expandedItem}`} key={item.id}>
             <span className={styles.productIcon} aria-hidden="true">□</span>
             <div className={styles.productCopy}><strong>{item.product_name}</strong><p>{item.sku} · {item.quantity} × {formatMoney(item.unit_price, state.data.currency, locale)} · {reasonLabels[locale][item.reason]}</p></div>
             <span className={styles.evidenceCount}>{item.evidence.length ? t.evidence(item.evidence.length) : t.noEvidence}</span>
@@ -648,5 +650,5 @@ function StatusBadge({ locale, status }: { locale: Locale; status: OperationsRet
 }
 
 function QueueMessage({ compact = false, loading = false, message }: { compact?: boolean; loading?: boolean; message: string }) {
-  return <div className={compact ? styles.compactMessage : styles.queueMessage} role="status">{loading && <LoadingSpinner />}{message}</div>;
+  return <div className={compact ? operationsSurfaceStyles.compactMessage : operationsSurfaceStyles.queueMessage} role="status">{loading && <LoadingSpinner />}{message}</div>;
 }
