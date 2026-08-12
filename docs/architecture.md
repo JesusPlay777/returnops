@@ -49,21 +49,34 @@ Configuration is provided through environment variables. Secrets are never
 committed. Compose includes explicit local defaults so a new contributor can
 run the platform before creating a `.env` file.
 
+Local Django uses the separate `POSTGRES_*` values. Production requires a
+single secret `DATABASE_URL`, a non-development `DJANGO_SECRET_KEY`, explicit
+allowed hosts, and the trusted public frontend origin. WhiteNoise serves the
+collected, hashed static assets from the Django container, and Gunicorn binds
+to the provider-supplied `PORT` value. Production database URLs are restricted
+to PostgreSQL; HSTS subdomain coverage and preload remain opt-in until a fully
+controlled custom domain is available.
+
 The frontend receives only public browser configuration through
 `NEXT_PUBLIC_*` variables. Django owns database credentials and application
 secrets.
 
 ## Browser API boundary
 
-The visitor workflow calls Django directly from a small shared browser client.
-This is deliberate: Django owns the opaque HttpOnly session cookie and CSRF
-protection, while `NEXT_PUBLIC_API_URL` supplies the public API origin at build
-time. Every request includes credentials, and unsafe methods copy the readable
-CSRF cookie into `X-CSRFToken` centrally.
+The visitor workflow calls relative `/api/` paths through a small shared
+browser client. Next.js rewrites those same-origin requests to the Django
+origin supplied privately through `BACKEND_INTERNAL_URL`; the backend address
+is not exposed to browser code. `NEXT_PUBLIC_API_URL` remains an optional
+development override and is empty by default. Django still owns the opaque
+HttpOnly session cookie and CSRF protection. Every request includes
+credentials, and unsafe methods copy the readable CSRF cookie into
+`X-CSRFToken` centrally.
 
-The root layout stays a Server Component. A narrow client-side provider runs
-the idempotent session bootstrap once and exposes `bootstrapping`, `ready`, or
-`error` state to interactive descendants. Concurrent bootstrap calls share one
+The root layout stays a Server Component. A narrow client-side provider first
+checks platform health, then runs the idempotent session bootstrap once. It
+exposes `bootstrapping`, `waking`, `ready`, or `error` state to interactive
+descendants. During a free-tier cold start, bounded health retries keep the UI
+informative and continue automatically. Concurrent bootstrap calls share one
 promise, and expected API errors retain their HTTP status, stable code, detail,
 and field errors.
 
@@ -105,9 +118,12 @@ container connectivity and does not participate in visitor ownership.
 ## Health and startup
 
 PostgreSQL must pass `pg_isready` before Django starts. Django applies
-migrations through its container entrypoint and exposes `/api/health/`. That
-endpoint performs a real database query. Next.js waits for the API health check
-before its container is considered healthy.
+migrations, removes expired visitor sandboxes and Django sessions, and collects
+static assets through its container entrypoint before starting the web process.
+Cleanup is idempotent and session expiry remains enforced on every request, so
+startup cleanup is operational hygiene rather than an authorization boundary.
+Django exposes `/api/health/`, which performs a real database query. Next.js
+waits for the API health check before its container is considered healthy.
 
 ## Security baseline
 

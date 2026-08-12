@@ -23,7 +23,7 @@ WORKDIR /app
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:8000
+ARG NEXT_PUBLIC_API_URL
 
 ENV NEXT_TELEMETRY_DISABLED=1 \
     NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}

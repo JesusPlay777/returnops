@@ -12,6 +12,10 @@ import {
 
 import { ApiError, toApiError } from "@/lib/api/client";
 import {
+  PlatformUnavailableError,
+  waitForPlatform,
+} from "@/lib/api/platform-health";
+import {
   bootstrapVisitorSession,
   invalidateVisitorSession,
   type VisitorSession,
@@ -19,6 +23,7 @@ import {
 
 type DemoSessionState =
   | { status: "bootstrapping" }
+  | { status: "waking" }
   | { status: "ready"; session: VisitorSession }
   | { status: "error"; error: ApiError };
 
@@ -38,21 +43,42 @@ export function DemoSessionProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let isCurrent = true;
+    const controller = new AbortController();
 
-    bootstrapVisitorSession()
-      .then((session) => {
+    async function initializeDemo() {
+      try {
+        await waitForPlatform({
+          signal: controller.signal,
+          onWaiting: () => {
+            if (isCurrent) {
+              setState({ status: "waking" });
+            }
+          },
+        });
+        const session = await bootstrapVisitorSession();
         if (isCurrent) {
           setState({ status: "ready", session });
         }
-      })
-      .catch((error: unknown) => {
+      } catch (error: unknown) {
         if (isCurrent) {
-          setState({ status: "error", error: toApiError(error) });
+          const apiError =
+            error instanceof PlatformUnavailableError
+              ? new ApiError({
+                  status: 503,
+                  code: "platform_unavailable",
+                  detail: error.message,
+                })
+              : toApiError(error);
+          setState({ status: "error", error: apiError });
         }
-      });
+      }
+    }
+
+    void initializeDemo();
 
     return () => {
       isCurrent = false;
+      controller.abort();
     };
   }, [attempt]);
 

@@ -35,6 +35,22 @@ describe("readCookie", () => {
 });
 
 describe("createApiClient", () => {
+  it("uses same-origin API paths by default", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      jsonResponse({ dataset_ready: true }),
+    );
+    const client = createApiClient({
+      baseUrl: "",
+      fetch: fetchMock as typeof fetch,
+      getCookie: vi.fn(),
+    });
+
+    await client.request("/api/v1/session/");
+
+    const [url] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(url).toBe("/api/v1/session/");
+  });
+
   it("sends safe requests with cookies and without a CSRF header", async () => {
     const fetchMock = vi.fn().mockResolvedValue(
       jsonResponse({ dataset_ready: true }),
@@ -56,6 +72,12 @@ describe("createApiClient", () => {
     expect(options.credentials).toBe("include");
     expect(options.cache).toBe("no-store");
     expect(new Headers(options.headers).has("X-CSRFToken")).toBe(false);
+  });
+
+  it("rejects non-HTTP browser API overrides", () => {
+    expect(() => createApiClient({ baseUrl: "ftp://api.test" })).toThrow(
+      "NEXT_PUBLIC_API_URL must use HTTP or HTTPS.",
+    );
   });
 
   it("serializes JSON and applies the CSRF cookie to unsafe requests", async () => {

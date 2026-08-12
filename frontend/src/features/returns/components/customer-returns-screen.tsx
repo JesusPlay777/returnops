@@ -84,6 +84,15 @@ const copy = {
     view: "View",
     loading: "Loading your return requests…",
     bootstrap: "Preparing your private demo…",
+    coldStartTitle: "The free demo is waking up",
+    coldStartBody:
+      "The backend was idle. The first visit can take up to 90 seconds; this page will continue automatically.",
+    sessionPreparing: "Preparing the private demo",
+    sessionPreparingCopy: "Checking the platform before creating your sandbox.",
+    sessionWaking: "Waking the free backend",
+    sessionWakingCopy: "No action is needed. We will continue as soon as it responds.",
+    sessionUnavailable: "Demo temporarily unavailable",
+    sessionUnavailableCopy: "The backend did not respond in time. Please try again.",
     listError: "We could not load your returns.",
     retry: "Try again",
     empty: "No returns yet. Start the first fictional request.",
@@ -154,6 +163,15 @@ const copy = {
     view: "Ver",
     loading: "Cargando tus solicitudes…",
     bootstrap: "Preparando tu demo privada…",
+    coldStartTitle: "La demo gratuita está despertando",
+    coldStartBody:
+      "El backend estaba inactivo. La primera visita puede tardar hasta 90 segundos; esta página continuará automáticamente.",
+    sessionPreparing: "Preparando la demo privada",
+    sessionPreparingCopy: "Comprobando la plataforma antes de crear tu entorno aislado.",
+    sessionWaking: "Despertando el backend gratuito",
+    sessionWakingCopy: "No necesitas hacer nada. Continuaremos cuando responda.",
+    sessionUnavailable: "Demo no disponible temporalmente",
+    sessionUnavailableCopy: "El backend no respondió a tiempo. Inténtalo de nuevo.",
     listError: "No pudimos cargar tus devoluciones.",
     retry: "Intentar de nuevo",
     empty: "Aún no hay devoluciones. Inicia la primera solicitud ficticia.",
@@ -350,6 +368,22 @@ export default function CustomerReturnsScreen() {
   );
 
   const sessionReady = session.status === "ready";
+  const sessionSummary =
+    session.status === "ready"
+      ? { title: t.sessionReady, detail: t.sessionCopy, icon: "✓" }
+      : session.status === "waking"
+        ? { title: t.sessionWaking, detail: t.sessionWakingCopy, icon: null }
+        : session.status === "error"
+          ? {
+              title: t.sessionUnavailable,
+              detail: t.sessionUnavailableCopy,
+              icon: "!",
+            }
+          : {
+              title: t.sessionPreparing,
+              detail: t.sessionPreparingCopy,
+              icon: null,
+            };
 
   if (role === "operations") {
     return (
@@ -417,11 +451,20 @@ export default function CustomerReturnsScreen() {
             </button>
           </div>
 
-          <aside className={`${customerSurfaceStyles.sessionCard} ${customerPatternStyles.sessionCard}`}>
-            <span className={customerPatternStyles.sessionIcon} aria-hidden="true">✓</span>
+          <aside
+            className={`${customerSurfaceStyles.sessionCard} ${customerPatternStyles.sessionCard}`}
+            data-status={session.status}
+          >
+            <span
+              className={customerPatternStyles.sessionIcon}
+              data-status={session.status}
+              aria-hidden="true"
+            >
+              {sessionSummary.icon ?? <LoadingSpinner />}
+            </span>
             <div>
-              <strong>{t.sessionReady}</strong>
-              <p>{t.sessionCopy}</p>
+              <strong>{sessionSummary.title}</strong>
+              <p>{sessionSummary.detail}</p>
             </div>
           </aside>
         </section>
@@ -441,12 +484,23 @@ export default function CustomerReturnsScreen() {
             <LoadingState message={t.bootstrap} />
           )}
 
+          {session.status === "waking" && (
+            <ColdStartState
+              detail={t.coldStartBody}
+              title={t.coldStartTitle}
+            />
+          )}
+
           {session.status === "error" && (
             <ErrorState
-              detail={errorDetail(session.error, t.listError)}
+              detail={
+                session.error.code === "platform_unavailable"
+                  ? t.sessionUnavailableCopy
+                  : errorDetail(session.error, t.listError)
+              }
               label={t.retry}
               onRetry={session.retry}
-              title={t.listError}
+              title={t.sessionUnavailable}
             />
           )}
 
@@ -649,6 +703,28 @@ function LoadingState({ message }: { message: string }) {
     <div className={customerSurfaceStyles.loadingState} role="status">
       <LoadingSpinner />
       {message}
+    </div>
+  );
+}
+
+function ColdStartState({
+  detail,
+  title,
+}: {
+  detail: string;
+  title: string;
+}) {
+  return (
+    <div
+      className={customerSurfaceStyles.coldStartState}
+      role="status"
+      aria-live="polite"
+    >
+      <LoadingSpinner />
+      <div>
+        <strong>{title}</strong>
+        <p>{detail}</p>
+      </div>
     </div>
   );
 }

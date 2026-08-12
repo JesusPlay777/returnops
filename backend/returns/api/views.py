@@ -33,6 +33,10 @@ from returns.api.serializers import (
     SubmitReturnSerializer,
     VisitorSessionResponseSerializer,
 )
+from returns.api.throttles import (
+    NewVisitorBootstrapThrottle,
+    VisitorResetThrottle,
+)
 from returns.models import ReturnRequest
 from returns.selectors import (
     customer_return_detail,
@@ -70,6 +74,7 @@ def _visitor(request):
 
 class SessionView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [NewVisitorBootstrapThrottle]
 
     @extend_schema(
         operation_id="bootstrapVisitorSession",
@@ -82,7 +87,10 @@ class SessionView(APIView):
         ),
         auth=PUBLIC_SECURITY,
         request=None,
-        responses={200: VisitorSessionResponseSerializer},
+        responses={
+            200: VisitorSessionResponseSerializer,
+            **error_responses(429),
+        },
         examples=[
             OpenApiExample(
                 "Ready demo session",
@@ -115,6 +123,7 @@ class SessionView(APIView):
 
 class DemoResetView(APIView):
     permission_classes = [AllowAny]
+    throttle_classes = [VisitorResetThrottle]
 
     @extend_schema(
         operation_id="resetDemoDataset",
@@ -128,7 +137,7 @@ class DemoResetView(APIView):
         request=None,
         responses={
             200: DemoResetResponseSerializer,
-            **error_responses(401, 403),
+            **error_responses(401, 403, 429),
         },
     )
     def post(self, request):

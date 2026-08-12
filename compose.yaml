@@ -36,6 +36,8 @@ services:
       DJANGO_CORS_ALLOWED_ORIGINS: ${DJANGO_CORS_ALLOWED_ORIGINS:-http://localhost:3000}
       DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-http://localhost:3000}
       RETURNOPS_VISITOR_SESSION_TTL_HOURS: ${RETURNOPS_VISITOR_SESSION_TTL_HOURS:-24}
+      RETURNOPS_BOOTSTRAP_THROTTLE_RATE: ${RETURNOPS_BOOTSTRAP_THROTTLE_RATE:-30/hour}
+      RETURNOPS_RESET_THROTTLE_RATE: ${RETURNOPS_RESET_THROTTLE_RATE:-10/hour}
     command:
       - python
       - manage.py
@@ -64,10 +66,10 @@ services:
       context: ./frontend
       target: development
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
       BACKEND_INTERNAL_URL: http://backend:8000
       WATCHPACK_POLLING: "true"
     command:

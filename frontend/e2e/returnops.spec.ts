@@ -11,7 +11,14 @@ test.beforeEach(async ({ page }) => {
   });
   page.on("pageerror", (error) => errors.push("page: " + error.message));
   page.on("response", (response) => {
-    if (response.url().includes("/api/") && response.status() >= 500) {
+    const expectedColdStart =
+      response.url().includes("/api/platform-health") &&
+      response.status() === 503;
+    if (
+      response.url().includes("/api/") &&
+      response.status() >= 500 &&
+      !expectedColdStart
+    ) {
       errors.push("api: " + response.status() + " " + response.url());
     }
   });
@@ -20,6 +27,35 @@ test.beforeEach(async ({ page }) => {
 
 test.afterEach(async ({ page }) => {
   expect(browserErrors.get(page), "The browser or API emitted unexpected errors").toEqual([]);
+});
+
+test("a cold backend shows progress and continues automatically", async ({
+  page,
+}) => {
+  let healthChecks = 0;
+  await page.route("**/api/platform-health", async (route) => {
+    healthChecks += 1;
+    const healthy = healthChecks > 1;
+    await route.fulfill({
+      contentType: "application/json",
+      status: 200,
+      body: JSON.stringify({
+        service: "returnops-api",
+        status: healthy ? "ok" : "unavailable",
+        database: healthy ? "ok" : "unavailable",
+      }),
+    });
+  });
+
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  await expect(
+    page.getByRole("status").filter({ hasText: "The free demo is waking up" }),
+  ).toBeVisible();
+  await expect(page.getByRole("button", { name: "Start a return" })).toBeEnabled({
+    timeout: 10_000,
+  });
+  expect(healthChecks).toBeGreaterThanOrEqual(2);
 });
 
 async function openCustomerDemo(page: Page) {
@@ -138,17 +174,45 @@ async function expectVisualBaseline(
     await document.fonts.ready;
   });
 
-  const mask = [
-    page.locator("time, tbody td:nth-child(6)"),
-    page
-      .getByRole("dialog")
-      .locator("dl")
-      .first()
-      .locator(":scope > div")
-      .nth(3)
-      .locator("dd"),
-    page.getByRole("dialog").locator("li small"),
-  ];
+  const customerWorkflow = page.getByRole("dialog", {
+    name: /^(New return|Nueva devolución)$/,
+  });
+  const customerWorkflowVisible = await customerWorkflow.isVisible();
+  if (customerWorkflowVisible) {
+    await customerWorkflow.evaluate((dialog) => {
+      window.scrollTo(0, 0);
+      dialog.scrollTo(0, 0);
+      let ancestor = dialog.parentElement;
+      while (ancestor) {
+        ancestor.scrollTo(0, 0);
+        ancestor = ancestor.parentElement;
+      }
+      dialog.parentElement?.setAttribute(
+        "data-visual-baseline",
+        "customer-workflow",
+      );
+    });
+    await page.addStyleTag({
+      content:
+        '[data-visual-baseline="customer-workflow"] {' +
+        "background: #4b5a57 !important; " +
+        "backdrop-filter: none !important; }",
+    });
+  }
+
+  const mask = customerWorkflowVisible
+    ? []
+    : [
+        page.locator("time, tbody td:nth-child(6)"),
+        page
+          .getByRole("dialog")
+          .locator("dl")
+          .first()
+          .locator(":scope > div")
+          .nth(3)
+          .locator("dd"),
+        page.getByRole("dialog").locator("li small"),
+      ];
   if (maskMobileQueue) {
     mask.push(page.locator("article button small"));
   }
