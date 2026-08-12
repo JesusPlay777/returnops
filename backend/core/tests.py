@@ -78,6 +78,18 @@ class ProductionSettingsTests(SimpleTestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("DATABASE_URL must be set", result.stderr)
 
+    def test_invalid_throttle_rate_fails_fast(self):
+        result = self.run_settings_probe(
+            "import config.settings",
+            {"RETURNOPS_BOOTSTRAP_THROTTLE_RATE": "unlimited/hour"},
+        )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "RETURNOPS_BOOTSTRAP_THROTTLE_RATE must use the format",
+            result.stderr,
+        )
+
     def test_database_url_enables_healthy_persistent_connections(self):
         result = self.run_settings_probe(
             """

@@ -52,6 +52,39 @@ def env_non_negative_int(name: str, default: int) -> int:
     return value
 
 
+def env_throttle_rate(name: str, default: str) -> str:
+    """Read and validate a Django REST Framework throttle rate."""
+    value = os.getenv(name, default).strip().lower()
+    request_count, separator, period = value.partition("/")
+    valid_periods = {
+        "s",
+        "sec",
+        "second",
+        "seconds",
+        "m",
+        "min",
+        "minute",
+        "minutes",
+        "h",
+        "hour",
+        "hours",
+        "d",
+        "day",
+        "days",
+    }
+    try:
+        count = int(request_count)
+    except ValueError as error:
+        raise ImproperlyConfigured(
+            f"{name} must use the format '<positive integer>/<period>'."
+        ) from error
+    if separator != "/" or count <= 0 or period not in valid_periods:
+        raise ImproperlyConfigured(
+            f"{name} must use the format '<positive integer>/<period>'."
+        )
+    return f"{count}/{period}"
+
+
 DEBUG = env_bool("DJANGO_DEBUG", True)
 configured_secret_key = os.getenv("DJANGO_SECRET_KEY", "").strip()
 if not DEBUG and (
@@ -77,6 +110,14 @@ DJANGO_ENABLE_ADMIN = env_bool("DJANGO_ENABLE_ADMIN", DEBUG)
 RETURNOPS_VISITOR_SESSION_TTL_HOURS = env_positive_int(
     "RETURNOPS_VISITOR_SESSION_TTL_HOURS",
     24,
+)
+RETURNOPS_BOOTSTRAP_THROTTLE_RATE = env_throttle_rate(
+    "RETURNOPS_BOOTSTRAP_THROTTLE_RATE",
+    "30/hour",
+)
+RETURNOPS_RESET_THROTTLE_RATE = env_throttle_rate(
+    "RETURNOPS_RESET_THROTTLE_RATE",
+    "10/hour",
 )
 
 INSTALLED_APPS = [

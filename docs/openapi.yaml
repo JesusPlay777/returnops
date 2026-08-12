@@ -5,6 +5,31 @@ info:
   description: Versioned API contract for the ReturnOps clean-room portfolio demo.
     All business data is fictional and isolated by browser visitor.
 paths:
+  /api/v1/demo/orders/:
+    get:
+      operationId: listEligibleDemoOrders
+      description: Returns only server-owned fictional catalog data from the current
+        visitor sandbox. Orders already used by a return are excluded.
+      summary: List unused fictional orders eligible for return
+      tags:
+      - Demo orders
+      security:
+      - visitorSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DemoOrder'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
   /api/v1/demo/reset/:
     post:
       operationId: resetDemoDataset
@@ -30,6 +55,12 @@ paths:
                 $ref: '#/components/schemas/APIError'
           description: Stable API error envelope.
         '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '429':
           content:
             application/json:
               schema:
@@ -261,27 +292,30 @@ paths:
           description: Stable API error envelope.
     post:
       operationId: createCustomerReturn
-      summary: Create an empty draft return
+      summary: Create a draft from an eligible fictional order
       tags:
       - Customer returns
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ReturnRequestWriteRequest'
+              $ref: '#/components/schemas/CatalogReturnCreateRequest'
             examples:
-              NewFictionalReturn:
+              ReturnSelectedCatalogItems:
                 value:
-                  order_reference: ORD-90001
-                  customer_name: Taylor Example
-                  customer_email: taylor@example.com
-                summary: New fictional return
+                  order_id: 3ce8a3de-d732-49bc-b1c4-1698091cf175
+                  items:
+                  - order_item_id: ca385771-23f5-4da7-b7c7-35c1c5b21ab0
+                    quantity: 1
+                    reason: DAMAGED
+                    details: Fictional product damage.
+                summary: Return selected catalog items
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/ReturnRequestWriteRequest'
+              $ref: '#/components/schemas/CatalogReturnCreateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/ReturnRequestWriteRequest'
+              $ref: '#/components/schemas/CatalogReturnCreateRequest'
         required: true
       security:
       - visitorSession: []
@@ -346,70 +380,6 @@ paths:
               schema:
                 $ref: '#/components/schemas/APIError'
           description: Stable API error envelope.
-    patch:
-      operationId: updateCustomerReturn
-      summary: Update mutable fields on a draft or needs-information return
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: Opaque return request UUID scoped to the current visitor.
-        required: true
-      tags:
-      - Customer returns
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedReturnRequestWriteRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedReturnRequestWriteRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedReturnRequestWriteRequest'
-      security:
-      - visitorSession: []
-        csrfToken: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReturnRequestDetail'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
     delete:
       operationId: deleteCustomerDraft
       summary: Delete a draft return
@@ -429,72 +399,6 @@ paths:
       responses:
         '204':
           description: No response body
-        '401':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-        '403':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-        '404':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-        '409':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
-  /api/v1/returns/{id}/items/:
-    post:
-      operationId: addCustomerReturnItem
-      summary: Add an item to a mutable return
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: string
-          format: uuid
-        description: Opaque return request UUID scoped to the current visitor.
-        required: true
-      tags:
-      - Customer returns
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/ReturnItemWriteRequest'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/ReturnItemWriteRequest'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/ReturnItemWriteRequest'
-        required: true
-      security:
-      - visitorSession: []
-        csrfToken: []
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ReturnItem'
-          description: ''
-        '400':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/APIError'
-          description: Stable API error envelope.
         '401':
           content:
             application/json:
@@ -544,13 +448,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedReturnItemWriteRequest'
+              $ref: '#/components/schemas/PatchedReturnItemUpdateRequest'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedReturnItemWriteRequest'
+              $ref: '#/components/schemas/PatchedReturnItemUpdateRequest'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedReturnItemWriteRequest'
+              $ref: '#/components/schemas/PatchedReturnItemUpdateRequest'
       security:
       - visitorSession: []
         csrfToken: []
@@ -867,6 +771,12 @@ paths:
                     dataset_ready: true
                   summary: Ready demo session
           description: ''
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
 components:
   schemas:
     APIError:
@@ -893,6 +803,112 @@ components:
       description: |-
         * `CUSTOMER` - CUSTOMER
         * `OPERATIONS` - OPERATIONS
+    CatalogReturnCreateRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        order_id:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogReturnItemSelectionRequest'
+      required:
+      - items
+      - order_id
+    CatalogReturnItemSelectionRequest:
+      type: object
+      description: Reject unknown and server-controlled fields instead of ignoring
+        them.
+      properties:
+        order_item_id:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+        reason:
+          $ref: '#/components/schemas/ReasonEnum'
+        details:
+          type: string
+          default: ''
+          maxLength: 2000
+      required:
+      - order_item_id
+      - quantity
+      - reason
+    DemoOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        order_reference:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        customer_email:
+          type: string
+          format: email
+          readOnly: true
+        currency:
+          type: string
+          readOnly: true
+        placed_at:
+          type: string
+          format: date-time
+          readOnly: true
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/DemoOrderItem'
+          readOnly: true
+      required:
+      - currency
+      - customer_email
+      - customer_name
+      - id
+      - items
+      - order_reference
+      - placed_at
+    DemoOrderItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sku:
+          type: string
+          readOnly: true
+        product_name:
+          type: string
+          readOnly: true
+        quantity:
+          type: integer
+          readOnly: true
+        unit_price:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        line_total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,2})?$
+          readOnly: true
+      required:
+      - id
+      - line_total
+      - product_name
+      - quantity
+      - sku
+      - unit_price
     DemoResetResponse:
       type: object
       properties:
@@ -1001,48 +1017,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ReturnRequestSummary'
-    PatchedReturnItemWriteRequest:
+    PatchedReturnItemUpdateRequest:
       type: object
       description: Reject unknown and server-controlled fields instead of ignoring
         them.
       properties:
-        sku:
-          type: string
-          minLength: 1
-          maxLength: 64
-        product_name:
-          type: string
-          minLength: 1
-          maxLength: 160
         quantity:
           type: integer
           minimum: 1
-        unit_price:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
         reason:
           $ref: '#/components/schemas/ReasonEnum'
         details:
           type: string
-    PatchedReturnRequestWriteRequest:
-      type: object
-      description: Reject unknown and server-controlled fields instead of ignoring
-        them.
-      properties:
-        order_reference:
-          type: string
-          minLength: 1
-          maxLength: 40
-        customer_name:
-          type: string
-          minLength: 1
-          maxLength: 120
-        customer_email:
-          type: string
-          format: email
-          minLength: 1
-          maxLength: 254
+          maxLength: 2000
     ReasonEnum:
       enum:
       - DAMAGED
@@ -1064,6 +1051,11 @@ components:
           type: string
           format: uuid
           readOnly: true
+        catalog_item_id:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
         sku:
           type: string
           readOnly: true
@@ -1071,6 +1063,9 @@ components:
           type: string
           readOnly: true
         quantity:
+          type: integer
+          readOnly: true
+        max_quantity:
           type: integer
           readOnly: true
         unit_price:
@@ -1104,47 +1099,19 @@ components:
           format: date-time
           readOnly: true
       required:
+      - catalog_item_id
       - created_at
       - details
       - evidence
       - id
       - line_total
+      - max_quantity
       - product_name
       - quantity
       - reason
       - sku
       - unit_price
       - updated_at
-    ReturnItemWriteRequest:
-      type: object
-      description: Reject unknown and server-controlled fields instead of ignoring
-        them.
-      properties:
-        sku:
-          type: string
-          minLength: 1
-          maxLength: 64
-        product_name:
-          type: string
-          minLength: 1
-          maxLength: 160
-        quantity:
-          type: integer
-          minimum: 1
-        unit_price:
-          type: string
-          format: decimal
-          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
-        reason:
-          $ref: '#/components/schemas/ReasonEnum'
-        details:
-          type: string
-      required:
-      - product_name
-      - quantity
-      - reason
-      - sku
-      - unit_price
     ReturnRequestDetail:
       type: object
       properties:
@@ -1251,28 +1218,6 @@ components:
       - status
       - total_value
       - updated_at
-    ReturnRequestWriteRequest:
-      type: object
-      description: Reject unknown and server-controlled fields instead of ignoring
-        them.
-      properties:
-        order_reference:
-          type: string
-          minLength: 1
-          maxLength: 40
-        customer_name:
-          type: string
-          minLength: 1
-          maxLength: 120
-        customer_email:
-          type: string
-          format: email
-          minLength: 1
-          maxLength: 254
-      required:
-      - customer_email
-      - customer_name
-      - order_reference
     StatusEvent:
       type: object
       properties:

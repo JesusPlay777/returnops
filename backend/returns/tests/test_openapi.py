@@ -60,6 +60,11 @@ class OpenAPIContractTests(SimpleTestCase):
         orders_get = self.schema["paths"]["/api/v1/demo/orders/"]["get"]
 
         self.assertNotIn("security", session_get)
+        self.assertIn("429", session_get["responses"])
+        self.assertIn(
+            "429",
+            self.schema["paths"]["/api/v1/demo/reset/"]["post"]["responses"],
+        )
         self.assertEqual(
             returns_get["security"],
             [{"visitorSession": []}],

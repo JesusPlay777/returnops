@@ -48,6 +48,20 @@ await fetch("http://localhost:8000/api/v1/demo/reset/", {
 The OpenAPI security schemes describe these two browser requirements. The
 session UUID itself must never appear in an API path, query, header, or body.
 
+## Public demo limits
+
+Creating a new visitor sandbox is limited to 30 creations per hour per client
+by default. Reusing an active browser session is not counted. Resetting the
+fictional dataset is limited to 10 operations per hour per active visitor.
+When a limit is exceeded, the API returns `429 Too Many Requests` in the same
+error envelope and includes `Retry-After` when available. Both rates are
+configurable through `RETURNOPS_BOOTSTRAP_THROTTLE_RATE` and
+`RETURNOPS_RESET_THROTTLE_RATE`.
+
+The initial deployment intentionally uses Django's local process cache because
+it runs as one free backend instance. A future multi-instance deployment must
+move these counters to a shared cache.
+
 ## Resource surface
 
 | Perspective | Method and path | Purpose |

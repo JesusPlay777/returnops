@@ -382,6 +382,15 @@ from the payload.
 - `403 Forbidden`: CSRF failure or a protected non-demo surface.
 - `404 Not Found`: nonexistent or cross-visitor resource.
 - `409 Conflict`: invalid/stale state transition or immutable aggregate.
+- `429 Too Many Requests`: the client exceeded sandbox creation or demo reset
+  limits. The response includes `Retry-After` when a wait time is available.
+
+To protect the public fictional dataset, creating a new visitor sandbox is
+limited by client identity (30 per hour by default), while resetting the demo
+is limited per active visitor (10 per hour by default). Resuming an existing,
+unexpired visitor session does not consume the bootstrap quota. These limits
+use Django's local cache and are intended for the initial single-instance
+deployment; a multi-instance deployment requires a shared cache.
 
 Domain errors use stable codes so both locales can render their own messages:
 
