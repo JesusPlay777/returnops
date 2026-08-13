@@ -132,5 +132,7 @@ visitors do not need to open or manually stimulate the API health URL.
 - Public uploads and proprietary data are outside the demo scope.
 
 The names of required settings are documented separately from their secret
-production values. No credential, token, database hostname, or generated key
-belongs in this document.
+production values in the
+[deployment configuration inventory](deployment-configuration.md). No
+credential, token, database hostname, or generated key belongs in either
+document.

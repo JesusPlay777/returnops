@@ -1,0 +1,188 @@
+# Deployment configuration
+
+## Purpose and secret policy
+
+This document records the production deployment settings required to
+reproduce the current ReturnOps topology without storing credentials. It is a
+configuration inventory, not an environment file.
+
+Use the following notation:
+
+- `<generated secret>` means the value must be created and stored in the named
+  provider.
+- `<provider connection string>` means the value must be copied directly
+  between provider secret stores, never through Git.
+- Public HTTPS origins and host names are safe to document.
+
+Never commit a real `DATABASE_URL`, `DJANGO_SECRET_KEY`, provider token, or
+recovery code. Do not paste secrets into pull requests, screenshots, build
+arguments, `NEXT_PUBLIC_*` variables, or browser code.
+
+## Portfolio project on Vercel
+
+| Setting | Value |
+| --- | --- |
+| Vercel project | `jesus-rojas-portfolio` |
+| Git repository | `JesusPlay777/jesus-rojas-portfolio` |
+| Production branch | `main` |
+| Framework preset | Next.js |
+| Root directory | Repository root (`./`) |
+| Build command | Next.js default |
+| Output directory | Next.js default |
+| Install command | Package-manager default |
+| Production URL | `https://jesus-rojas-portfolio.vercel.app` |
+
+### Portfolio environment variables
+
+| Variable | Production value | Visibility | Purpose |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | `https://jesus-rojas-portfolio.vercel.app` | Public | Canonical origin used by metadata, sitemap, and robots output. |
+| `NEXT_PUBLIC_RETURNOPS_DEMO_URL` | `https://returnops-six.vercel.app` | Public | Stable destination of the ReturnOps `Live demo` link. |
+
+Both variables are intentionally public because Next.js includes
+`NEXT_PUBLIC_*` values in browser-visible build output. They must never contain
+credentials.
+
+## ReturnOps frontend on Vercel
+
+| Setting | Value |
+| --- | --- |
+| Vercel project | `returnops` |
+| Git repository | `JesusPlay777/returnops` |
+| Production branch | `main` |
+| Framework preset | Next.js |
+| Root directory | `frontend` |
+| Build command | Next.js default |
+| Output directory | Next.js default |
+| Install command | Package-manager default |
+| Production URL | `https://returnops-six.vercel.app` |
+
+Do not override the output directory with `public`, `.next`, `Default`, or any
+other literal value. Vercel's Next.js preset owns the build output.
+
+### ReturnOps frontend environment variables
+
+| Variable | Production value | Visibility | Purpose |
+| --- | --- | --- | --- |
+| `BACKEND_INTERNAL_URL` | `https://returnops-api.onrender.com` | Server-only, non-secret | Origin used by the Next.js rewrite and platform-health handler. It must have no trailing slash, path, query, fragment, or credentials. |
+| `NEXT_PUBLIC_API_URL` | Unset | Public when present | Optional local-development override. Keeping it unset in production preserves the same-origin proxy boundary. |
+
+`BACKEND_INTERNAL_URL` may be configured for Production and Preview when both
+environments intentionally use the public demo API. It is not a credential,
+but it must not use the `NEXT_PUBLIC_` prefix because browser code does not
+need the backend origin.
+
+Do not add Django or PostgreSQL variables to the Vercel frontend project.
+
+## ReturnOps API on Render
+
+| Setting | Value |
+| --- | --- |
+| Service type | Web Service |
+| Service name | `returnops-api` |
+| Runtime | Docker |
+| Git repository | `JesusPlay777/returnops` |
+| Production branch | `main` |
+| Region | Ohio (US East) |
+| Root directory | `backend` |
+| Docker build context | `.` |
+| Dockerfile path | `./Dockerfile` |
+| Instance type | Free |
+| Auto-deploy | On commit |
+| Health check path | `/api/health/` |
+| Public origin | `https://returnops-api.onrender.com` |
+| Pre-deploy command | Unset; the container entrypoint owns startup tasks |
+
+The Docker `production` target supplies Gunicorn as the runtime command.
+Render supplies `PORT`; do not hardcode or manually override it in the
+dashboard.
+
+### Required Render environment variables
+
+| Variable | Safe representation | Secret | Purpose |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | `<Neon direct connection string>` | Yes | Complete PostgreSQL URL copied from Neon. Required when debug mode is disabled. |
+| `DJANGO_SECRET_KEY` | `<generated secret>` | Yes | High-entropy Django signing key generated and stored in Render. |
+| `DJANGO_DEBUG` | `false` | No | Enables the production security and renderer configuration. |
+| `DJANGO_ALLOWED_HOSTS` | `returnops-api.onrender.com,returnops-six.vercel.app` | No | Comma-separated accepted host names without schemes or paths. Add a future custom API or frontend host here when introduced. |
+| `DJANGO_CORS_ALLOWED_ORIGINS` | `https://returnops-six.vercel.app` | No | Comma-separated browser origins, including scheme and without trailing slash. |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://returnops-six.vercel.app` | No | Trusted HTTPS origin required for unsafe requests forwarded by the frontend proxy. |
+| `DJANGO_ENABLE_ADMIN` | `false` | No | Keeps Django admin outside the public demo surface. |
+| `RETURNOPS_VISITOR_SESSION_TTL_HOURS` | `24` | No | Expires each isolated visitor sandbox after 24 hours. |
+| `RETURNOPS_BOOTSTRAP_THROTTLE_RATE` | `30/hour` | No | Limits new sandbox creation per client. |
+| `RETURNOPS_RESET_THROTTLE_RATE` | `10/hour` | No | Limits dataset resets per visitor. |
+
+The CORS and CSRF lists contain the ReturnOps frontend, not the portfolio. The
+portfolio performs normal external navigation to the demo and never calls the
+ReturnOps API.
+
+### Render defaults owned by code or provider
+
+These settings normally require no dashboard override:
+
+- `PORT` is injected by Render.
+- `WEB_CONCURRENCY=2`, `GUNICORN_THREADS=4`, and `GUNICORN_TIMEOUT=60` come from
+  the production Docker image.
+- `DJANGO_SECURE_SSL_REDIRECT` defaults to enabled in production.
+- `DJANGO_SECURE_HSTS_SECONDS` defaults to `3600` in production.
+- HSTS subdomain coverage and preload remain disabled until a controlled
+  custom domain is introduced.
+- Local `POSTGRES_*` variables belong to Docker Compose and are not required
+  when `DATABASE_URL` is present.
+
+### Backend startup sequence
+
+The committed container entrypoint performs the following idempotent sequence
+on every Render start:
+
+```text
+python manage.py migrate --noinput
+  -> python manage.py cleanup_expired_demo_data --no-color
+  -> python manage.py collectstatic --noinput
+  -> Gunicorn on 0.0.0.0:$PORT
+```
+
+This is why the Render pre-deploy command remains empty. The free service does
+not require an interactive shell to become operational.
+
+## PostgreSQL on Neon
+
+| Setting | Value |
+| --- | --- |
+| Neon project | `returnops` |
+| Branch | `production` (default) |
+| Database | `neondb` |
+| Application role | `neondb_owner` |
+| Region | AWS US East 1 (N. Virginia) |
+| Connection mode | Direct connection; pooling disabled for the initial single backend instance |
+| TLS | Required by the provider connection string |
+
+The Neon connection string is stored only as Render's secret `DATABASE_URL`.
+It must not be added to Vercel, `.env.example`, GitHub, documentation, or
+frontend code. Django migrations are the sole source of production schema
+changes.
+
+## Branch and deployment policy
+
+| Branch | Purpose | Production effect |
+| --- | --- | --- |
+| `test` | Development, automated checks, visual review, and approval | None until merged. A Vercel preview can be created if the branch is pushed. |
+| `main` | Approved production source | A push triggers the connected Vercel and Render production deployments. |
+
+A local merge does not deploy anything. Production changes only after the
+updated `main` branch reaches GitHub. Failed builds do not replace the last
+successful Vercel or Render release.
+
+## Verification after a production deployment
+
+1. Confirm the Render service reports `Live`.
+2. Open `https://returnops-api.onrender.com/api/health/` and verify that the
+   service and database report `ok`.
+3. Confirm the API documentation loads and `/admin/` returns `404`.
+4. Open `https://returnops-six.vercel.app` in a private browser session.
+5. Complete the customer -> operations -> customer workflow.
+6. Open the portfolio and confirm that `Live demo` navigates to the stable
+   ReturnOps production URL.
+
+The health URL is a diagnostic endpoint, not a keep-alive requirement. The
+frontend handles expected free-tier cold starts automatically.

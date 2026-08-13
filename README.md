@@ -144,6 +144,7 @@ The application itself uses PostgreSQL in Docker and in deployed environments.
 
 - [Architecture](docs/architecture.md)
 - [Production architecture and public URLs](docs/production-architecture.md)
+- [Deployment configuration without secrets](docs/deployment-configuration.md)
 - [API v1 and browser security](docs/api.md)
 - [OpenAPI schema snapshot](docs/openapi.yaml)
 - [Returns domain and visitor-isolation contract](docs/returns-domain-contract.md)
