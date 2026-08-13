@@ -23,6 +23,21 @@ The initial release intentionally uses a synchronous architecture:
 Celery and Redis are not part of the initial scope. They will only be
 introduced if a measured asynchronous workload justifies them.
 
+## Production
+
+The public deployment is available at:
+
+- Portfolio: <https://jesus-rojas-portfolio.vercel.app>
+- ReturnOps live demo: <https://returnops-six.vercel.app>
+- API health: <https://returnops-api.onrender.com/api/health/>
+- API documentation: <https://returnops-api.onrender.com/api/v1/docs/>
+
+The portfolio links to an independent ReturnOps frontend on Vercel. Relative
+API requests are rewritten to the Django service on Render, and Django is the
+only application layer connected to the managed Neon PostgreSQL database. See
+the [production architecture](docs/production-architecture.md) for the full
+topology, request path, provider responsibilities, and deployment flow.
+
 ## Prerequisites
 
 - Docker Desktop with WSL 2 integration
@@ -128,6 +143,7 @@ The application itself uses PostgreSQL in Docker and in deployed environments.
 ## Documentation
 
 - [Architecture](docs/architecture.md)
+- [Production architecture and public URLs](docs/production-architecture.md)
 - [API v1 and browser security](docs/api.md)
 - [OpenAPI schema snapshot](docs/openapi.yaml)
 - [Returns domain and visitor-isolation contract](docs/returns-domain-contract.md)
