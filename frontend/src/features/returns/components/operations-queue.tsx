@@ -581,7 +581,7 @@ function DesktopQueue({
           {requests.map((request) => (
             <Fragment key={request.id}>
               <tr data-expanded={expanded.has(request.id)}>
-                <td><button aria-controls={expanded.has(request.id) ? `desktop-return-${request.id}` : undefined} className={operationsPatternStyles.rowToggle} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button"><span aria-hidden="true">{expanded.has(request.id) ? "⌄" : "›"}</span>{request.reference}</button></td>
+                <td><button aria-controls={expanded.has(request.id) ? `desktop-return-${request.id}` : undefined} className={operationsPatternStyles.rowToggle} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button"><QueueDisclosureIcon expanded={expanded.has(request.id)} className={operationsPatternStyles.rowDisclosure} />{request.reference}</button></td>
                 <td>{request.customer_name}</td>
                 <td>{request.item_count}</td>
                 <td>{formatMoney(request.total_value, request.currency, locale)}</td>
@@ -607,7 +607,7 @@ function MobileQueue(props: Parameters<typeof DesktopQueue>[0]) {
       {requests.map((request) => (
         <article className={operationsSurfaceStyles.mobileCard} key={request.id}>
           <button aria-controls={expanded.has(request.id) ? `mobile-return-${request.id}` : undefined} className={`${operationsSurfaceStyles.mobileCardHeader} ${operationsPatternStyles.mobileCardHeader}`} aria-expanded={expanded.has(request.id)} onClick={() => onToggle(request.id)} type="button">
-            <span className={operationsPatternStyles.mobileChevron} aria-hidden="true">{expanded.has(request.id) ? "⌃" : "⌄"}</span>
+            <QueueDisclosureIcon expanded={expanded.has(request.id)} className={operationsPatternStyles.mobileChevron} />
             <strong>{request.reference}</strong>
             <StatusBadge locale={locale} status={request.status as OperationsReturnStatus} />
             <span className={operationsPatternStyles.mobileMenu} aria-hidden="true">⋮</span>
@@ -642,10 +642,10 @@ function ExpandedRequest({
   return (
     <div className={operationsSurfaceStyles.expandedPanel} id={id}>
       <div className={`${operationsSurfaceStyles.expandedHeader} ${operationsPatternStyles.expandedHeader}`}><strong>{t.returnItems(state.data.item_count)}</strong><button onClick={() => onOpenReview(state.data)} type="button">{t.openFull} →</button></div>
-      <div className={`${operationsSurfaceStyles.hierarchy} ${operationsPatternStyles.hierarchy}`}>
+      <div className={operationsSurfaceStyles.hierarchy}>
         {state.data.items.map((item) => (
-          <article className={`${operationsSurfaceStyles.expandedItem} ${operationsPatternStyles.expandedItem}`} key={item.id}>
-            <span className={operationsPatternStyles.productIcon} aria-hidden="true">□</span>
+          <article className={operationsSurfaceStyles.expandedItem} key={item.id}>
+            <ReturnedItemIcon />
             <div className={operationsPatternStyles.productCopy}><strong>{item.product_name}</strong><p>{item.sku} · {item.quantity} × {formatMoney(item.unit_price, state.data.currency, locale)} · {reasonLabels[locale][item.reason]}</p></div>
             <span className={operationsPatternStyles.evidenceCount}>{item.evidence.length ? t.evidence(item.evidence.length) : t.noEvidence}</span>
             {item.evidence.length > 0 && (
@@ -656,8 +656,60 @@ function ExpandedRequest({
           </article>
         ))}
       </div>
-      <p className={operationsPatternStyles.evidenceNote}>ⓘ {locale === "es" ? "La evidencia pertenece a cada artículo devuelto." : "Evidence belongs to each returned item."}</p>
+      <p className={operationsPatternStyles.evidenceNote}>ⓘ {locale === "es" ? "Cada evidencia está agrupada bajo el artículo que documenta." : "Each evidence file is grouped under the item it documents."}</p>
     </div>
+  );
+}
+
+function QueueDisclosureIcon({
+  className,
+  expanded,
+}: {
+  className: string;
+  expanded: boolean;
+}) {
+  return (
+    <span aria-hidden="true" className={className}>
+      <svg
+        className={operationsPatternStyles.disclosureIcon}
+        fill="none"
+        style={{ transform: expanded ? "rotate(90deg)" : "rotate(0deg)" }}
+        viewBox="0 0 16 16"
+      >
+        <path
+          d="m6 3.5 4.5 4.5L6 12.5"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.75"
+        />
+      </svg>
+    </span>
+  );
+}
+
+function ReturnedItemIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className={operationsPatternStyles.productIcon}
+    >
+      <svg className="size-[22px]" fill="none" viewBox="0 0 24 24">
+        <path
+          d="m4.5 7.5 7.5-4 7.5 4v9l-7.5 4-7.5-4v-9Z"
+          stroke="currentColor"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+        <path
+          d="m4.8 7.7 7.2 4 7.2-4M12 11.7v8.5M8.2 5.5l7.4 4.1"
+          stroke="currentColor"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth="1.5"
+        />
+      </svg>
+    </span>
   );
 }
 

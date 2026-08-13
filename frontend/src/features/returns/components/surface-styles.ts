@@ -148,9 +148,9 @@ export const operationsSurfaceStyles = {
   expandedHeader:
     "flex min-h-12 items-center justify-between gap-[18px] border-b border-border px-[18px] max-[760px]:px-[14px]",
   hierarchy:
-    "relative py-0 pr-[18px] pl-12 max-[760px]:pr-[14px] max-[760px]:pl-10",
+    "py-0 px-[18px] max-[760px]:px-[14px]",
   expandedItem:
-    "relative grid min-h-[84px] grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[14px] border-b border-[#e8edeb] py-[14px] last:border-b-0 max-[760px]:grid-cols-[42px_1fr]",
+    "grid min-h-[92px] grid-cols-[46px_minmax(0,1fr)_auto] items-center gap-[14px] border-b border-[#e8edeb] py-4 last:border-b-0 max-[760px]:grid-cols-[42px_1fr]",
   mobileQueue: "hidden max-[760px]:mt-[10px] max-[760px]:grid max-[760px]:gap-[10px]",
   mobileCard:
     "overflow-hidden rounded-[11px] border border-border bg-surface",

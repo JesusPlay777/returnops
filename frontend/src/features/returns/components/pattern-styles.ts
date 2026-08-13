@@ -144,17 +144,17 @@ export const operationsPatternStyles = {
   tableFrame:
     "[&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_th]:h-[52px] [&_th]:bg-[#fafbfb] [&_th]:px-[18px] [&_th]:text-[9px] [&_th]:font-[780] [&_th]:tracking-[0.07em] [&_th]:text-text-secondary [&_th]:uppercase [&_td]:h-[66px] [&_td]:whitespace-nowrap [&_td]:border-t [&_td]:border-[#e6ebe9] [&_td]:px-[18px] [&_td]:text-[12px] [&_tbody_tr[data-expanded=true]]:bg-[#f2f8f7] [&_td:last-child]:text-[11px] [&_td:last-child]:text-text-secondary",
   rowToggle:
-    "inline-flex cursor-pointer items-center gap-3 border-0 bg-transparent text-[13px] font-[760] text-primary-dark [&>span]:grid [&>span]:size-[22px] [&>span]:place-items-center [&>span]:text-[20px]",
+    "group -ml-1 inline-flex min-h-9 cursor-pointer items-center gap-2.5 rounded-lg border-0 bg-transparent py-1 pr-2 pl-1 text-[13px] font-[760] text-primary-dark transition-colors hover:bg-white/75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+  rowDisclosure:
+    "grid size-7 shrink-0 place-items-center rounded-md border border-border bg-surface text-primary-dark shadow-[0_1px_2px_rgb(15_53_50_/_6%)] transition-[border-color,background-color] group-hover:border-[#9bc6c1] group-hover:bg-primary-soft",
+  disclosureIcon:
+    "size-3.5 transition-transform duration-200 ease-out motion-reduce:transition-none",
   expandedRow:
     "[&>td]:h-auto [&>td]:whitespace-normal [&>td]:bg-[#f2f8f7] [&>td]:px-[10px] [&>td]:pt-0 [&>td]:pb-[10px]",
   expandedHeader:
     "[&_strong]:text-[10px] [&_strong]:tracking-[0.045em] [&_strong]:uppercase [&_button]:cursor-pointer [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-[11px] [&_button]:font-bold [&_button]:text-primary-dark [&_button:hover]:underline [&_button:hover]:underline-offset-[3px]",
-  hierarchy:
-    "before:absolute before:inset-y-0 before:left-[27px] before:w-px before:bg-[#a9c8c4] before:content-[''] max-[760px]:before:left-[22px]",
-  expandedItem:
-    "before:absolute before:top-1/2 before:left-[-21px] before:h-px before:w-5 before:bg-[#a9c8c4] before:content-[''] max-[760px]:before:left-[-18px] max-[760px]:before:w-[17px]",
   productIcon:
-    "grid size-[46px] place-items-center rounded-[9px] border border-border bg-[#fbfcfc] text-[20px] text-primary max-[760px]:size-[42px]",
+    "grid size-[46px] place-items-center rounded-xl border border-[#b8d9d4] bg-primary-soft text-primary-dark shadow-[0_1px_2px_rgb(15_53_50_/_5%)] max-[760px]:size-[42px]",
   productCopy:
     "[&_strong]:text-[12px] [&_p]:mt-[6px] [&_p]:text-[10px] [&_p]:leading-[1.4] [&_p]:text-text-secondary",
   evidenceCount:
@@ -166,7 +166,7 @@ export const operationsPatternStyles = {
   mobileCardHeader:
     "[&>strong]:text-[17px] [&_small]:col-start-2 [&_small]:col-end-5 [&_small]:text-[9px] [&_small]:text-text-secondary",
   mobileChevron:
-    "row-span-2 grid size-[30px] place-items-center rounded-[7px] bg-primary-soft text-primary-dark",
+    "row-span-2 grid size-[30px] place-items-center rounded-lg border border-[#b8d9d4] bg-primary-soft text-primary-dark",
   mobileMenu: "justify-self-end text-[20px]",
   mobileCustomer: "col-start-2 col-end-5 text-[12px] font-[650]",
   errorState:
