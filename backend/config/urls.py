@@ -43,6 +43,7 @@ urlpatterns = [
         name="api-redoc",
     ),
     path("api/v1/", include("returns.api.urls")),
+    path("api/v1/energybil/", include("energybil.api.urls")),
 ]
 
 if settings.DJANGO_ENABLE_ADMIN:

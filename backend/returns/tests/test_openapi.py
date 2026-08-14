@@ -25,6 +25,9 @@ class OpenAPIContractTests(SimpleTestCase):
                 "/api/v1/session/",
                 "/api/v1/demo/reset/",
                 "/api/v1/demo/orders/",
+                "/api/v1/energybil/demo/",
+                "/api/v1/energybil/demo/advance/",
+                "/api/v1/energybil/demo/reset/",
                 "/api/v1/returns/",
                 "/api/v1/returns/{id}/",
                 "/api/v1/returns/{id}/submit/",
@@ -58,6 +61,10 @@ class OpenAPIContractTests(SimpleTestCase):
         returns_get = self.schema["paths"]["/api/v1/returns/"]["get"]
         returns_post = self.schema["paths"]["/api/v1/returns/"]["post"]
         orders_get = self.schema["paths"]["/api/v1/demo/orders/"]["get"]
+        energy_get = self.schema["paths"]["/api/v1/energybil/demo/"]["get"]
+        energy_advance = self.schema["paths"][
+            "/api/v1/energybil/demo/advance/"
+        ]["post"]
 
         self.assertNotIn("security", session_get)
         self.assertIn("429", session_get["responses"])
@@ -72,6 +79,14 @@ class OpenAPIContractTests(SimpleTestCase):
         self.assertEqual(
             orders_get["security"],
             [{"visitorSession": []}],
+        )
+        self.assertEqual(
+            energy_get["security"],
+            [{"visitorSession": []}],
+        )
+        self.assertEqual(
+            energy_advance["security"],
+            [{"visitorSession": [], "csrfToken": []}],
         )
         self.assertEqual(
             returns_post["security"],

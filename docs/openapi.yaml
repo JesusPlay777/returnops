@@ -66,6 +66,93 @@ paths:
               schema:
                 $ref: '#/components/schemas/APIError'
           description: Stable API error envelope.
+  /api/v1/energybil/demo/:
+    get:
+      operationId: retrieveEnergybilDemo
+      description: Seeds once and returns the current visitor's fictional meter-to-invoice
+        workflow. No ownership identifier is accepted.
+      summary: Retrieve the isolated Energybil scenario
+      tags:
+      - Energybil demo
+      security:
+      - visitorSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnergyDemo'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/energybil/demo/advance/:
+    post:
+      operationId: advanceEnergybilDemo
+      description: Advances exactly one stage in a database transaction. The final
+        delivery stage is an in-app simulation; no queue or email is used.
+      summary: Run the next synchronous billing stage
+      tags:
+      - Energybil demo
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnergyDemo'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/energybil/demo/reset/:
+    post:
+      operationId: resetEnergybilDemo
+      summary: Reset only the current visitor's Energybil scenario
+      tags:
+      - Energybil demo
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnergyDemo'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
   /api/v1/operations/returns/:
     get:
       operationId: listOperationsReturns
@@ -926,6 +1013,210 @@ components:
       - message_code
       - reset_at
       - return_count
+    EnergyDemo:
+      type: object
+      properties:
+        account_reference:
+          type: string
+          readOnly: true
+        customer_name:
+          type: string
+          readOnly: true
+        property_name:
+          type: string
+          readOnly: true
+        service_address:
+          type: string
+          readOnly: true
+        currency:
+          type: string
+          readOnly: true
+        tariff_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,4}(?:\.\d{0,4})?$
+          readOnly: true
+        fixed_charge:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        tax_rate:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,1}(?:\.\d{0,4})?$
+          readOnly: true
+        phase:
+          type: string
+          readOnly: true
+        next_phase:
+          type: string
+          nullable: true
+          readOnly: true
+        is_complete:
+          type: boolean
+          readOnly: true
+        did_advance:
+          type: boolean
+          readOnly: true
+        meter:
+          allOf:
+          - $ref: '#/components/schemas/EnergyMeter'
+          readOnly: true
+        invoice:
+          allOf:
+          - $ref: '#/components/schemas/EnergyInvoice'
+          readOnly: true
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnergyWorkflowEvent'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - account_reference
+      - currency
+      - customer_name
+      - did_advance
+      - events
+      - fixed_charge
+      - invoice
+      - is_complete
+      - meter
+      - next_phase
+      - phase
+      - property_name
+      - service_address
+      - tariff_rate
+      - tax_rate
+      - updated_at
+    EnergyInvoice:
+      type: object
+      properties:
+        invoice_number:
+          type: string
+          readOnly: true
+        period_start:
+          type: string
+          format: date
+          readOnly: true
+        period_end:
+          type: string
+          format: date
+          readOnly: true
+        due_date:
+          type: string
+          format: date
+          readOnly: true
+        consumption_kwh:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          readOnly: true
+        energy_charge:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        subtotal:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        tax:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        total:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,10}(?:\.\d{0,2})?$
+          readOnly: true
+        issued_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        notification_preview:
+          type: string
+          readOnly: true
+        notification_simulated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - consumption_kwh
+      - due_date
+      - energy_charge
+      - invoice_number
+      - issued_at
+      - notification_preview
+      - notification_simulated_at
+      - period_end
+      - period_start
+      - subtotal
+      - tax
+      - total
+    EnergyMeter:
+      type: object
+      properties:
+        serial_number:
+          type: string
+          readOnly: true
+        label:
+          type: string
+          readOnly: true
+        previous_reading_kwh:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          readOnly: true
+        current_reading_kwh:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,9}(?:\.\d{0,3})?$
+          readOnly: true
+        received_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - current_reading_kwh
+      - label
+      - previous_reading_kwh
+      - received_at
+      - serial_number
+    EnergyWorkflowEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        phase:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          readOnly: true
+        detail:
+          type: string
+          readOnly: true
+        occurred_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - detail
+      - id
+      - occurred_at
+      - phase
+      - title
     Evidence:
       type: object
       properties:
@@ -1321,3 +1612,6 @@ tags:
   description: Create, edit, submit, and follow returns.
 - name: Operations queue
   description: Review and transition submitted returns.
+- name: Energybil demo
+  description: Advance a fictional meter reading through validation, consumption,
+    billing, and a simulated notification.

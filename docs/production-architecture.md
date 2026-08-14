@@ -4,7 +4,7 @@
 
 ReturnOps is deployed as a public clean-room portfolio demonstration. The
 production topology described here reflects the deployment validated on
-2026-08-13.
+2026-08-14.
 
 ## Public entry points
 
@@ -12,9 +12,10 @@ production topology described here reflects the deployment validated on
 | --- | --- | --- |
 | Portfolio | <https://jesus-rojas-portfolio.vercel.app> | Public portfolio and entry point to the live demo. |
 | ReturnOps web application | <https://returnops-six.vercel.app> | Bilingual customer and operations demo. |
-| API health | <https://returnops-api.onrender.com/api/health/> | Backend and database readiness check. |
-| API documentation | <https://returnops-api.onrender.com/api/v1/docs/> | Interactive OpenAPI documentation. |
-| OpenAPI schema | <https://returnops-api.onrender.com/api/v1/schema/> | Machine-readable API contract. |
+| Energybil web application | <https://returnops-six.vercel.app/energybil> | Bilingual meter-to-invoice demo on the same frontend. |
+| API health | <https://http--returnops-api--hk88tqk8y2dz.code.run/api/health/> | Backend and database readiness check. |
+| API documentation | <https://http--returnops-api--hk88tqk8y2dz.code.run/api/v1/docs/> | Interactive OpenAPI documentation. |
+| OpenAPI schema | <https://http--returnops-api--hk88tqk8y2dz.code.run/api/v1/schema/> | Machine-readable API contract. |
 
 The Django administration route is intentionally disabled in production and
 returns `404 Not Found`. It is not part of the public demo surface.
@@ -36,8 +37,8 @@ returnops-six.vercel.app
   | same-origin /api/* requests
   | Next.js rewrite
   v
-ReturnOps API — Render
-returnops-api.onrender.com
+ReturnOps API — Northflank
+http--returnops-api--hk88tqk8y2dz.code.run
   |
   | encrypted PostgreSQL connection
   v
@@ -53,7 +54,7 @@ replicate, or serve the ReturnOps frontend.
 
 1. A visitor opens the ReturnOps application on its Vercel domain.
 2. The frontend calls relative paths such as `/api/v1/session/`.
-3. Vercel applies the Next.js rewrite and forwards the request to the Render
+3. Vercel applies the Next.js rewrite and forwards the request to the Northflank
    API origin.
 4. Django validates the visitor session, applies the domain rules, and reads
    or writes fictional data in Neon PostgreSQL.
@@ -75,24 +76,26 @@ browser code.
 ### ReturnOps frontend on Vercel
 
 - Builds the `frontend/` Next.js application.
-- Serves the bilingual customer and operations interface.
+- Serves the bilingual returns and Energybil interfaces.
 - Proxies relative API requests to the configured backend origin.
 - Displays a bounded cold-start state while the free backend wakes up.
 
-### ReturnOps API on Render
+### ReturnOps API on Northflank
 
 - Builds the `backend/` Django container.
-- Applies migrations, removes expired demo data, and collects static assets
-  before Gunicorn starts.
+- Collects static assets while building the image, then applies migrations and
+  removes expired demo data before Gunicorn starts.
 - Enforces visitor isolation, CSRF, transition rules, throttling, and the API
   contract.
+- Executes both the returns and Energybil domains in one worker with two
+  threads; it does not run Redis, Celery, or a second service.
 - Serves health, schema, and API-documentation endpoints.
 
 ### PostgreSQL on Neon
 
 - Persists Django sessions and the isolated fictional datasets.
 - Is reachable by the backend only through the production database secret.
-- Can scale to zero while inactive, independently of the Render service.
+- Can scale to zero while inactive, independently of the Northflank service.
 
 ## Deployment flow
 
@@ -102,12 +105,12 @@ JesusPlay777/jesus-rojas-portfolio main
 
 JesusPlay777/returnops main
   -> Vercel ReturnOps frontend production deployment
-  -> Render ReturnOps API production deployment
+  -> Northflank ReturnOps API production deployment
   -> Django migrations against Neon during backend startup
 ```
 
-Work is prepared and verified on the `test` branches. Production changes only
-begin after approved work is merged and pushed to `main`. Vercel and Render
+Work is prepared and verified on feature or `test` branches. Production changes
+only begin after approved work is merged and pushed to `main`. Vercel and Northflank
 replace their active production release only after their respective build and
 startup checks succeed.
 
@@ -116,7 +119,7 @@ repository. Schema changes reach it through committed Django migrations.
 
 ## Free-tier behavior
 
-The Render API and Neon compute can become idle. The first request after an
+The Northflank API and Neon compute can become idle. The first request after an
 idle period may therefore take substantially longer than a warm request. The
 frontend health bootstrap communicates this state and retries automatically;
 visitors do not need to open or manually stimulate the API health URL.

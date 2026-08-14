@@ -8,8 +8,8 @@ Tailwind entrypoint, design tokens, the minimal base layer, keyboard focus, and
 reduced-motion behavior; it does not contain component selectors.
 
 The interface system covers the customer center, the three-step return
-workflow, the operations queue, and the full operations review in English and
-Spanish at desktop and mobile widths.
+workflow, the operations queue, the full operations review, and the Energybil
+meter-to-invoice route in English and Spanish at desktop and mobile widths.
 
 ## Sources of truth
 
@@ -23,6 +23,8 @@ The visual implementation is deliberately split by responsibility:
 - `pattern-styles.ts` owns contextual typography and complex descendant or
   state patterns such as tables, timelines, evidence hierarchies, and status
   decisions.
+- `src/features/energybil/components/styles.ts` applies the same three-way
+  control, surface, and pattern split within the independent Energybil feature.
 - Small, self-contained primitives such as badges and the loading spinner may
   keep a complete static class string beside their markup.
 
@@ -49,9 +51,10 @@ placement modifier rather than a new reusable component style.
    requirement cleanly, document the exception before extending the global
    base layer.
 
-The consolidation audit found 236 static class-string literals across the
-three catalogs and zero exact duplicate complete strings after extracting the
-shared field, message, and heading-row primitives.
+The returns consolidation audit found 236 static class-string literals across
+its three catalogs and zero exact duplicate complete strings after extracting
+the shared field, message, and heading-row primitives. Energybil keeps its
+additional static strings inside its feature-local catalog.
 
 ## Accessibility contract
 

@@ -1,4 +1,4 @@
-# ReturnOps API v1
+# ReturnOps platform API v1
 
 The OpenAPI document is the machine-readable contract for the first ReturnOps
 vertical slice. The domain and isolation rules remain normative in
@@ -69,6 +69,9 @@ move these counters to a shared cache.
 | Public | `GET /api/v1/session/` | Bootstrap or resume the demo sandbox |
 | Demo | `GET /api/v1/demo/orders/` | List unused eligible fictional orders |
 | Demo | `POST /api/v1/demo/reset/` | Reset only the current visitor data |
+| Energybil | `GET /api/v1/energybil/demo/` | Seed or retrieve the isolated meter-to-invoice scenario |
+| Energybil | `POST /api/v1/energybil/demo/advance/` | Commit the next synchronous billing stage |
+| Energybil | `POST /api/v1/energybil/demo/reset/` | Reset only the visitor's Energybil scenario |
 | Customer | `GET, POST /api/v1/returns/` | List returns or create from catalog selections |
 | Customer | `GET, DELETE /api/v1/returns/{id}/` | Read or delete a draft |
 | Customer | `POST /api/v1/returns/{id}/submit/` | Submit or resubmit a return |
@@ -79,6 +82,8 @@ move these counters to a shared cache.
 
 The exact request fields, enums, pagination envelope, response models, examples,
 and status codes live in the OpenAPI schema rather than being duplicated here.
+The Energybil state machine and simulation boundary are normative in the
+[Energybil demo contract](energybil-domain-contract.md).
 
 ## Error envelope
 

@@ -2,10 +2,10 @@
 
 ## Purpose
 
-ReturnOps is an independent demonstration application for a returns workflow.
-All people, products, evidence, identifiers, and operational data are
-fictional. The implementation is clean-room and does not depend on the
-original workplace application.
+ReturnOps is an independent operations-demo platform. Its returns and Energybil
+workflows use fictional people, assets, identifiers, and operational data. The
+implementation is clean-room and does not depend on an original workplace
+application at runtime.
 
 ## Runtime topology
 
@@ -40,8 +40,10 @@ returnops/
 └── .env.example    documented configuration contract
 ```
 
-The first domain module will be `returns`. The generated `core` Django app
-contains only cross-cutting platform endpoints such as health checks.
+The `returns` module owns the return-request domain. The focused `energybil`
+module owns the meter-to-invoice state machine and references only the shared
+visitor sandbox from `returns`. The generated `core` Django app contains only
+cross-cutting platform endpoints such as health checks.
 
 ## Configuration
 
@@ -104,11 +106,19 @@ the table; mobile replaces rows with expandable request cards. Dataset reset
 continues through the shared CSRF-aware client and remains scoped to the
 current visitor.
 
+The `/energybil` route is a second feature module on the same Next.js and
+Django deployments. It lazily seeds one fictional site, meter, invoice, and
+timeline per visitor. A command endpoint advances one state at a time through
+reading receipt, validation, consumption calculation, invoice issue, and a
+simulated notification. Billing values, state, and audit events share one
+database transaction. The final stage records an in-app preview instead of
+dispatching email through Redis or Celery.
+
 The frontend interface is implemented with Tailwind CSS 4. Semantic theme
-tokens and a minimal base layer live in `globals.css`; reusable controls,
-surfaces, and contextual patterns remain in three statically discoverable
-TypeScript catalogs. The complete conventions, accessibility contract, and
-visual verification workflow are defined in the
+tokens and a minimal base layer live in `globals.css`; reusable returns styles
+remain in three statically discoverable TypeScript catalogs and Energybil uses
+the same control/surface/pattern split in a feature-local catalog. The complete
+conventions, accessibility contract, and visual verification workflow are defined in the
 [frontend interface system](frontend-interface-system.md).
 
 Next.js Route Handlers are not used as a general proxy for the returns API.
@@ -126,6 +136,8 @@ Cleanup is idempotent and session expiry remains enforced on every request, so
 startup cleanup is operational hygiene rather than an authorization boundary.
 Django exposes `/api/health/`, which performs a real database query. Next.js
 waits for the API health check before its container is considered healthy.
+Energybil rows cascade from the existing visitor record, so the same expiry and
+cleanup path covers both demos without a scheduler or second cleanup process.
 
 ## Security baseline
 

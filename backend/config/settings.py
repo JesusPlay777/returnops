@@ -132,6 +132,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "core",
     "returns.apps.ReturnsConfig",
+    "energybil.apps.EnergybilConfig",
 ]
 if DJANGO_ENABLE_ADMIN:
     INSTALLED_APPS.insert(0, "django.contrib.admin")
@@ -346,6 +347,13 @@ SPECTACULAR_SETTINGS = {
         {
             "name": "Operations queue",
             "description": "Review and transition submitted returns.",
+        },
+        {
+            "name": "Energybil demo",
+            "description": (
+                "Advance a fictional meter reading through validation, "
+                "consumption, billing, and a simulated notification."
+            ),
         },
     ],
     "APPEND_COMPONENTS": {
