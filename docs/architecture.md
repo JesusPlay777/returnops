@@ -118,8 +118,10 @@ container connectivity and does not participate in visitor ownership.
 ## Health and startup
 
 PostgreSQL must pass `pg_isready` before Django starts. Django applies
-migrations, removes expired visitor sandboxes and Django sessions, and collects
-static assets through its container entrypoint before starting the web process.
+migrations and removes expired visitor sandboxes and Django sessions through
+its container entrypoint before starting the web process. Production static
+assets are collected once while the immutable Docker image is built, keeping
+runtime startup within the memory budget of small deployment instances.
 Cleanup is idempotent and session expiry remains enforced on every request, so
 startup cleanup is operational hygiene rather than an authorization boundary.
 Django exposes `/api/health/`, which performs a real database query. Next.js
