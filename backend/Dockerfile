@@ -33,4 +33,9 @@ ENV DJANGO_DEBUG=false \
 
 USER django
 
+RUN DJANGO_DEBUG=true \
+    DB_ENGINE=sqlite \
+    DJANGO_ENABLE_ADMIN=false \
+    python manage.py collectstatic --noinput
+
 CMD ["sh", "-c", "exec gunicorn config.wsgi:application --bind 0.0.0.0:${PORT} --workers ${WEB_CONCURRENCY} --threads ${GUNICORN_THREADS} --timeout ${GUNICORN_TIMEOUT} --access-logfile - --error-logfile -"]

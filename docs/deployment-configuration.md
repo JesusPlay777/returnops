@@ -91,7 +91,7 @@ Do not add Django or PostgreSQL variables to the Vercel frontend project.
 | Auto-deploy | On commit |
 | Health check path | `/api/health/` |
 | Public origin | `https://returnops-api.onrender.com` |
-| Pre-deploy command | Unset; the container entrypoint owns startup tasks |
+| Pre-deploy command | Unset; the image build and container entrypoint own their respective startup tasks |
 
 The Docker `production` target supplies Gunicorn as the runtime command.
 Render supplies `PORT`; do not hardcode or manually override it in the
@@ -130,20 +130,29 @@ These settings normally require no dashboard override:
 - Local `POSTGRES_*` variables belong to Docker Compose and are not required
   when `DATABASE_URL` is present.
 
-### Backend startup sequence
+### Backend build and startup sequence
 
-The committed container entrypoint performs the following idempotent sequence
-on every Render start:
+The production image collects static assets during its build:
+
+```text
+python manage.py collectstatic --noinput
+```
+
+The committed container entrypoint then performs only the runtime-dependent
+steps on every Render start:
 
 ```text
 python manage.py migrate --noinput
   -> python manage.py cleanup_expired_demo_data --no-color
-  -> python manage.py collectstatic --noinput
   -> Gunicorn on 0.0.0.0:$PORT
 ```
 
-This is why the Render pre-deploy command remains empty. The free service does
-not require an interactive shell to become operational.
+The static build uses an isolated SQLite configuration and does not require
+production credentials or a connection to Neon. Keeping `collectstatic` out
+of the runtime entrypoint reduces startup memory and allows small deployment
+instances to reach their readiness probe reliably. This is why the Render
+pre-deploy command remains empty. The free service does not require an
+interactive shell to become operational.
 
 ## PostgreSQL on Neon
 
