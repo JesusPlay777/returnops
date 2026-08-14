@@ -1,6 +1,5 @@
 import { expect, test } from "@playwright/test";
 
-
 test.describe("Energybil live demo", () => {
   test("advances the isolated meter reading through the complete invoice", async ({
     page,
@@ -13,6 +12,15 @@ test.describe("Energybil live demo", () => {
         name: "Turn a meter pulse into an auditable invoice.",
       }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Energybil home" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Interactive demo", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "ReturnOps demo" }),
+    ).toHaveCount(0);
     const advance = page.getByRole("button", { name: "Run next stage" });
     await expect(advance).toBeEnabled({ timeout: 20_000 });
 
@@ -45,7 +53,7 @@ test.describe("Energybil live demo", () => {
       page.getByRole("button", { name: "Run next stage" }),
     ).toBeEnabled({ timeout: 20_000 });
 
-    await page.getByRole("button", { name: "es", exact: true }).click();
+    await page.getByRole("button", { name: "ES", exact: true }).click();
     await expect(
       page.getByRole("heading", {
         level: 1,
@@ -53,6 +61,9 @@ test.describe("Energybil live demo", () => {
       }),
     ).toBeVisible();
     await expect(page.locator("html")).toHaveAttribute("lang", "es");
+    await expect(
+      page.getByText("Demo interactiva", { exact: true }),
+    ).toHaveText("Demo interactiva");
 
     const hasHorizontalOverflow = await page.evaluate(
       () => document.documentElement.scrollWidth > window.innerWidth,

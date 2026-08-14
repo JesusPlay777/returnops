@@ -3,8 +3,6 @@ export const energyControlStyles = {
     "inline-flex min-h-12 cursor-pointer items-center justify-center gap-3 rounded-full border border-primary bg-primary px-6 text-[13px] font-[750] text-surface transition-[transform,background] duration-150 enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-50 motion-reduce:transition-none",
   secondary:
     "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-border bg-surface px-5 text-[12px] font-[720] text-ink transition-colors hover:border-primary hover:text-primary-dark disabled:cursor-wait disabled:opacity-50",
-  locale:
-    "min-h-9 cursor-pointer rounded-full px-3 text-[10px] font-[760] tracking-[0.08em] uppercase data-[active=true]:bg-ink data-[active=true]:text-surface",
 } as const;
 
 export const energySurfaceStyles = {
@@ -14,7 +12,6 @@ export const energySurfaceStyles = {
   header:
     "mx-auto flex min-h-[78px] w-[min(1180px,calc(100%-48px))] items-center justify-between gap-5 border-b border-border max-[620px]:w-[calc(100%-32px)]",
   headerTools: "flex items-center gap-3",
-  localeGroup: "flex rounded-full border border-border bg-surface p-1",
   main: "mx-auto w-[min(1180px,calc(100%-48px))] pb-20 max-[620px]:w-[calc(100%-32px)]",
   hero:
     "grid grid-cols-[minmax(0,1.15fr)_minmax(310px,0.65fr)] items-center gap-[clamp(42px,8vw,110px)] py-[clamp(64px,9vw,112px)] max-[860px]:grid-cols-1 max-[620px]:py-14",
@@ -57,7 +54,7 @@ export const energySurfaceStyles = {
 
 export const energyPatternStyles = {
   brand:
-    "flex items-center gap-3 no-underline [&>span:first-child]:grid [&>span:first-child]:size-9 [&>span:first-child]:place-items-center [&>span:first-child]:rounded-xl [&>span:first-child]:bg-ink [&>span:first-child]:text-[12px] [&>span:first-child]:font-extrabold [&>span:first-child]:text-surface [&>strong]:text-[14px] [&>small]:ml-1 [&>small]:font-medium [&>small]:text-text-secondary",
+    "flex items-center gap-3 no-underline [&>span:first-child]:grid [&>span:first-child]:size-9 [&>span:first-child]:place-items-center [&>span:first-child]:rounded-xl [&>span:first-child]:bg-ink [&>span:first-child]:text-[12px] [&>span:first-child]:font-extrabold [&>span:first-child]:text-surface [&>strong]:text-[14px] [&>strong]:font-[750]",
   eyebrow:
     "text-[11px] font-[780] tracking-[0.13em] text-primary-dark uppercase",
   heroTitle:

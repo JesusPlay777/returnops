@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -13,6 +12,8 @@ import {
   energyPatternStyles,
   energySurfaceStyles,
 } from "@/features/energybil/components/styles";
+import { DemoBadge } from "@/features/returns/components/demo-badge";
+import { LocaleSwitch } from "@/features/returns/components/locale-switch";
 import type {
   EnergyDemo,
   EnergyWorkflowPhase,
@@ -37,8 +38,7 @@ const phases: EnergyWorkflowPhase[] = [
 const copy = {
   en: {
     skip: "Skip to Energybil demo",
-    brandSuffix: "Energybil",
-    back: "ReturnOps demo",
+    demo: "Interactive demo",
     eyebrow: "Energy management · Billing",
     title: "Turn a meter pulse into an auditable invoice.",
     intro:
@@ -100,8 +100,7 @@ const copy = {
   },
   es: {
     skip: "Saltar a la demo Energybil",
-    brandSuffix: "Energybil",
-    back: "Demo ReturnOps",
+    demo: "Demo interactiva",
     eyebrow: "Gestión de energía · Facturación",
     title: "Convierte un pulso del medidor en una factura auditable.",
     intro:
@@ -266,28 +265,21 @@ export default function EnergybilDemoScreen() {
       </a>
 
       <header className={energySurfaceStyles.header}>
-        <Link className={energyPatternStyles.brand} href="/">
+        <a
+          aria-label="Energybil home"
+          className={energyPatternStyles.brand}
+          href="#top"
+        >
           <span aria-hidden="true">EB</span>
-          <span><strong>ReturnOps</strong><small>/ {t.brandSuffix}</small></span>
-        </Link>
+          <strong>Energybil</strong>
+        </a>
         <div className={energySurfaceStyles.headerTools}>
-          <Link className="text-[11px] font-[700] text-primary-dark underline-offset-4 hover:underline max-[620px]:hidden" href="/">
-            {t.back}
-          </Link>
-          <div className={energySurfaceStyles.localeGroup} role="group" aria-label="Language">
-            {(["en", "es"] as const).map((option) => (
-              <button
-                className={energyControlStyles.locale}
-                data-active={locale === option}
-                key={option}
-                onClick={() => setLocale(option)}
-                type="button"
-                aria-pressed={locale === option}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
+          <DemoBadge variant="customer">{t.demo}</DemoBadge>
+          <LocaleSwitch
+            locale={locale}
+            onLocaleChange={setLocale}
+            variant="customer"
+          />
         </div>
       </header>
 
