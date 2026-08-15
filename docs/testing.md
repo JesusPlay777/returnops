@@ -31,6 +31,11 @@ docker compose exec frontend npm run typecheck
 
 Vitest covers the HTTP client, session bootstrap, API adapters, and pure workflow helpers.
 
+The Django suite also covers the complete Energybil state machine, exact invoice
+amounts, CSRF enforcement, idempotent completion, reset behavior, and isolation
+between two browser sessions. The frontend unit suite covers the three
+Energybil API commands.
+
 ## Browser end-to-end tests
 
 Playwright runs from WSL against the frontend, backend, and PostgreSQL services provided by Docker Compose. Keep the three services healthy before starting:

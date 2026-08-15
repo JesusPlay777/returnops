@@ -64,7 +64,7 @@ other literal value. Vercel's Next.js preset owns the build output.
 
 | Variable | Production value | Visibility | Purpose |
 | --- | --- | --- | --- |
-| `BACKEND_INTERNAL_URL` | `https://returnops-api.onrender.com` | Server-only, non-secret | Origin used by the Next.js rewrite and platform-health handler. It must have no trailing slash, path, query, fragment, or credentials. |
+| `BACKEND_INTERNAL_URL` | `https://http--returnops-api--hk88tqk8y2dz.code.run` | Server-only, non-secret | Origin used by the Next.js rewrite and platform-health handler. It must have no trailing slash, path, query, fragment, or credentials. |
 | `NEXT_PUBLIC_API_URL` | Unset | Public when present | Optional local-development override. Keeping it unset in production preserves the same-origin proxy boundary. |
 
 `BACKEND_INTERNAL_URL` may be configured for Production and Preview when both
@@ -74,55 +74,57 @@ need the backend origin.
 
 Do not add Django or PostgreSQL variables to the Vercel frontend project.
 
-## ReturnOps API on Render
+## ReturnOps API on Northflank
 
 | Setting | Value |
 | --- | --- |
-| Service type | Web Service |
+| Service type | Combined service |
 | Service name | `returnops-api` |
 | Runtime | Docker |
 | Git repository | `JesusPlay777/returnops` |
 | Production branch | `main` |
-| Region | Ohio (US East) |
-| Root directory | `backend` |
-| Docker build context | `.` |
-| Dockerfile path | `./Dockerfile` |
-| Instance type | Free |
-| Auto-deploy | On commit |
+| Region | US - Central (Council Bluffs) |
+| Docker build context | `/backend` |
+| Dockerfile path | `/backend/Dockerfile` |
+| Compute plan | `nf-compute-10` (`0.1` shared vCPU, `256 MB`) |
+| Instances | `1` |
+| Continuous deployment | Enabled for `main` |
+| Public port | `http`, port `8000`, protocol `HTTP` |
 | Health check path | `/api/health/` |
-| Public origin | `https://returnops-api.onrender.com` |
-| Pre-deploy command | Unset; the image build and container entrypoint own their respective startup tasks |
+| Public origin | `https://http--returnops-api--hk88tqk8y2dz.code.run` |
+| Docker runtime mode | Default configuration |
 
 The Docker `production` target supplies Gunicorn as the runtime command.
-Render supplies `PORT`; do not hardcode or manually override it in the
-dashboard.
+Northflank exposes the single configured HTTP port; no second service or port
+is required for Energybil.
 
-### Required Render environment variables
+### Required Northflank runtime variables
 
 | Variable | Safe representation | Secret | Purpose |
 | --- | --- | --- | --- |
 | `DATABASE_URL` | `<Neon direct connection string>` | Yes | Complete PostgreSQL URL copied from Neon. Required when debug mode is disabled. |
-| `DJANGO_SECRET_KEY` | `<generated secret>` | Yes | High-entropy Django signing key generated and stored in Render. |
+| `DJANGO_SECRET_KEY` | `<generated secret>` | Yes | High-entropy Django signing key stored in Northflank. |
 | `DJANGO_DEBUG` | `false` | No | Enables the production security and renderer configuration. |
-| `DJANGO_ALLOWED_HOSTS` | `returnops-api.onrender.com,returnops-six.vercel.app` | No | Comma-separated accepted host names without schemes or paths. Add a future custom API or frontend host here when introduced. |
+| `DJANGO_ALLOWED_HOSTS` | `http--returnops-api--hk88tqk8y2dz.code.run` | No | Accepted API host name without scheme or path. |
 | `DJANGO_CORS_ALLOWED_ORIGINS` | `https://returnops-six.vercel.app` | No | Comma-separated browser origins, including scheme and without trailing slash. |
 | `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://returnops-six.vercel.app` | No | Trusted HTTPS origin required for unsafe requests forwarded by the frontend proxy. |
 | `DJANGO_ENABLE_ADMIN` | `false` | No | Keeps Django admin outside the public demo surface. |
 | `RETURNOPS_VISITOR_SESSION_TTL_HOURS` | `24` | No | Expires each isolated visitor sandbox after 24 hours. |
 | `RETURNOPS_BOOTSTRAP_THROTTLE_RATE` | `30/hour` | No | Limits new sandbox creation per client. |
 | `RETURNOPS_RESET_THROTTLE_RATE` | `10/hour` | No | Limits dataset resets per visitor. |
+| `PORT` | `8000` | No | Must match the public Northflank HTTP port. |
+| `WEB_CONCURRENCY` | `1` | No | Keeps Gunicorn within the 256 MB runtime limit. |
+| `GUNICORN_THREADS` | `2` | No | Provides bounded request concurrency inside the single worker. |
+| `GUNICORN_TIMEOUT` | `60` | No | Bounds individual request execution. |
 
 The CORS and CSRF lists contain the ReturnOps frontend, not the portfolio. The
 portfolio performs normal external navigation to the demo and never calls the
 ReturnOps API.
 
-### Render defaults owned by code or provider
+### Defaults owned by code or provider
 
 These settings normally require no dashboard override:
 
-- `PORT` is injected by Render.
-- `WEB_CONCURRENCY=2`, `GUNICORN_THREADS=4`, and `GUNICORN_TIMEOUT=60` come from
-  the production Docker image.
 - `DJANGO_SECURE_SSL_REDIRECT` defaults to enabled in production.
 - `DJANGO_SECURE_HSTS_SECONDS` defaults to `3600` in production.
 - HSTS subdomain coverage and preload remain disabled until a controlled
@@ -130,7 +132,7 @@ These settings normally require no dashboard override:
 - Local `POSTGRES_*` variables belong to Docker Compose and are not required
   when `DATABASE_URL` is present.
 
-### Backend build and startup sequence
+### Backend build, startup, and readiness
 
 The production image collects static assets during its build:
 
@@ -139,7 +141,7 @@ python manage.py collectstatic --noinput
 ```
 
 The committed container entrypoint then performs only the runtime-dependent
-steps on every Render start:
+steps on every Northflank start:
 
 ```text
 python manage.py migrate --noinput
@@ -150,9 +152,10 @@ python manage.py migrate --noinput
 The static build uses an isolated SQLite configuration and does not require
 production credentials or a connection to Neon. Keeping `collectstatic` out
 of the runtime entrypoint reduces startup memory and allows small deployment
-instances to reach their readiness probe reliably. This is why the Render
-pre-deploy command remains empty. The free service does not require an
-interactive shell to become operational.
+instances to reach their readiness probe reliably. Northflank's readiness
+probe targets port `8000`, path `/api/health/`, with a `90` second initial
+delay, `30` second interval, `10` second timeout, and failure threshold `5`.
+Energybil adds one migration to this existing sequence and no new startup step.
 
 ## PostgreSQL on Neon
 
@@ -166,7 +169,7 @@ interactive shell to become operational.
 | Connection mode | Direct connection; pooling disabled for the initial single backend instance |
 | TLS | Required by the provider connection string |
 
-The Neon connection string is stored only as Render's secret `DATABASE_URL`.
+The Neon connection string is stored only as Northflank's secret `DATABASE_URL`.
 It must not be added to Vercel, `.env.example`, GitHub, documentation, or
 frontend code. Django migrations are the sole source of production schema
 changes.
@@ -176,21 +179,23 @@ changes.
 | Branch | Purpose | Production effect |
 | --- | --- | --- |
 | `test` | Development, automated checks, visual review, and approval | None until merged. A Vercel preview can be created if the branch is pushed. |
-| `main` | Approved production source | A push triggers the connected Vercel and Render production deployments. |
+| `main` | Approved production source | A push triggers the connected Vercel and Northflank production deployments. |
 
 A local merge does not deploy anything. Production changes only after the
 updated `main` branch reaches GitHub. Failed builds do not replace the last
-successful Vercel or Render release.
+successful Vercel or Northflank release.
 
 ## Verification after a production deployment
 
-1. Confirm the Render service reports `Live`.
-2. Open `https://returnops-api.onrender.com/api/health/` and verify that the
+1. Confirm the Northflank service reports `Running` with `1/1 passing`.
+2. Open `https://http--returnops-api--hk88tqk8y2dz.code.run/api/health/` and verify that the
    service and database report `ok`.
 3. Confirm the API documentation loads and `/admin/` returns `404`.
 4. Open `https://returnops-six.vercel.app` in a private browser session.
 5. Complete the customer -> operations -> customer workflow.
-6. Open the portfolio and confirm that `Live demo` navigates to the stable
+6. Open `https://returnops-six.vercel.app/energybil`, advance all five stages,
+   and confirm the final amount is `USD 71.52`.
+7. Open the portfolio and confirm that `Live demo` navigates to the stable
    ReturnOps production URL.
 
 The health URL is a diagnostic endpoint, not a keep-alive requirement. The

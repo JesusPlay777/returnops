@@ -1,8 +1,9 @@
 # ReturnOps
 
-ReturnOps is a clean-room, bilingual returns-operations demo. It recreates a
-realistic customer-to-operations workflow using fictional data, without
-copying proprietary code, visual assets, or private information.
+ReturnOps is a clean-room, bilingual operations-demo platform. It contains a
+realistic customer-to-operations returns workflow and a focused Energybil
+meter-to-invoice workflow, using only fictional data and independently written
+code.
 
 This repository is a monorepo containing:
 
@@ -29,11 +30,12 @@ The public deployment is available at:
 
 - Portfolio: <https://jesus-rojas-portfolio.vercel.app>
 - ReturnOps live demo: <https://returnops-six.vercel.app>
-- API health: <https://returnops-api.onrender.com/api/health/>
-- API documentation: <https://returnops-api.onrender.com/api/v1/docs/>
+- Energybil live demo: <https://returnops-six.vercel.app/energybil>
+- API health: <https://http--returnops-api--hk88tqk8y2dz.code.run/api/health/>
+- API documentation: <https://http--returnops-api--hk88tqk8y2dz.code.run/api/v1/docs/>
 
 The portfolio links to an independent ReturnOps frontend on Vercel. Relative
-API requests are rewritten to the Django service on Render, and Django is the
+API requests are rewritten to the Django service on Northflank, and Django is the
 only application layer connected to the managed Neon PostgreSQL database. See
 the [production architecture](docs/production-architecture.md) for the full
 topology, request path, provider responsibilities, and deployment flow.
@@ -65,6 +67,7 @@ docker compose up --build
 Open:
 
 - Customer returns demo: http://localhost:3000
+- Energybil meter-to-invoice demo: http://localhost:3000/energybil
 - API health: http://localhost:8000/api/health/
 - API documentation: http://localhost:8000/api/v1/docs/
 - OpenAPI schema: http://localhost:8000/api/v1/schema/
@@ -86,6 +89,12 @@ and the demo dataset can be reset without affecting any other visitor. The
 full decision view lets operations request information, approve, or reject a
 return. A customer can answer a request for information and resubmit it through
 the same isolated workflow.
+
+The Energybil route reuses the same visitor sandbox and backend process. It
+advances a fictional gateway reading through validation, consumption,
+invoicing, and an explicitly simulated notification. Every stage and audit
+event is committed synchronously in PostgreSQL; Redis, Celery, email delivery,
+and a second runtime service are intentionally absent.
 
 ## Common commands
 
@@ -148,6 +157,8 @@ The application itself uses PostgreSQL in Docker and in deployed environments.
 - [API v1 and browser security](docs/api.md)
 - [OpenAPI schema snapshot](docs/openapi.yaml)
 - [Returns domain and visitor-isolation contract](docs/returns-domain-contract.md)
+- [Energybil synchronous demo contract](docs/energybil-domain-contract.md)
 - [ADR 0001: synchronous core](docs/decisions/0001-synchronous-core.md)
+- [ADR 0002: reduce Energybil to one synchronous demo](docs/decisions/0002-energybil-synchronous-demo.md)
 - [Automated testing](docs/testing.md)
 - [Frontend interface system](docs/frontend-interface-system.md)
