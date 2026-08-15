@@ -74,9 +74,6 @@ const copy = {
     amountDue: "Amount due",
     notCalculated: "Calculated at stage 03",
     preview: "Simulated delivery preview",
-    architectureTitle: "Designed for a 256 MB service",
-    architectureCopy:
-      "The useful domain behavior remains real while operationally expensive infrastructure is deliberately omitted.",
     loading: "Preparing your private Energybil scenario…",
     waking: "The free backend is waking up",
     wakingCopy:
@@ -92,11 +89,6 @@ const copy = {
       INVOICE_ISSUED: ["Invoice", "A bill is issued with an audit event."],
       NOTIFICATION_SIMULATED: ["Notification", "Delivery is previewed without a worker."],
     },
-    cards: [
-      ["Runtime", "Single web service", "Django handles requests, transitions, and audit entries synchronously."],
-      ["Consistency", "One transaction", "Billing values and workflow history commit together or roll back together."],
-      ["Simulation", "No Redis or Celery", "The notification is an explicit in-app preview, not a hidden fake queue."],
-    ],
   },
   es: {
     skip: "Saltar a la demo Energybil",
@@ -136,9 +128,6 @@ const copy = {
     amountDue: "Total a pagar",
     notCalculated: "Se calcula en la etapa 03",
     preview: "Vista previa de entrega simulada",
-    architectureTitle: "Diseñada para un servicio de 256 MB",
-    architectureCopy:
-      "El comportamiento útil del dominio sigue siendo real y se omite deliberadamente la infraestructura costosa.",
     loading: "Preparando tu escenario privado de Energybil…",
     waking: "El backend gratuito está despertando",
     wakingCopy:
@@ -154,11 +143,6 @@ const copy = {
       INVOICE_ISSUED: ["Factura", "La factura se emite con evento auditable."],
       NOTIFICATION_SIMULATED: ["Notificación", "La entrega se previsualiza sin worker."],
     },
-    cards: [
-      ["Ejecución", "Un único servicio web", "Django maneja solicitudes, transiciones y auditoría de forma síncrona."],
-      ["Consistencia", "Una transacción", "Los valores y el historial se confirman juntos o se revierten juntos."],
-      ["Simulación", "Sin Redis ni Celery", "La notificación es una vista previa explícita, no una cola falsa oculta."],
-    ],
   },
 } as const;
 
@@ -402,18 +386,6 @@ export default function EnergybilDemoScreen() {
               </aside>
             </div>
 
-            <section className={energySurfaceStyles.section} aria-labelledby="architecture-title">
-              <p className={energyPatternStyles.eyebrow}>{t.architecture}</p>
-              <h2 id="architecture-title" className={energyPatternStyles.sectionTitle}>{t.architectureTitle}</h2>
-              <p className={energyPatternStyles.sectionCopy}>{t.architectureCopy}</p>
-              <div className={energySurfaceStyles.architecture}>
-                {t.cards.map(([label, title, description]) => (
-                  <article className={`${energySurfaceStyles.architectureCard} ${energyPatternStyles.architectureCard}`} key={label}>
-                    <span>{label}</span><h3>{title}</h3><p>{description}</p>
-                  </article>
-                ))}
-              </div>
-            </section>
           </>
         ) : null}
         <p className="sr-only" aria-live="polite">{announcement}</p>

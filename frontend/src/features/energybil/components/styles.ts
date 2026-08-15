@@ -42,10 +42,6 @@ export const energySurfaceStyles = {
   invoiceRow: "flex items-center justify-between gap-5 text-[12px]",
   invoiceTotal:
     "mt-2 flex items-end justify-between gap-5 border-t border-ink pt-4",
-  architecture:
-    "mt-6 grid grid-cols-3 gap-6 max-[800px]:grid-cols-1",
-  architectureCard:
-    "rounded-[22px] border border-border bg-surface p-6",
   stateMessage:
     "mt-8 rounded-2xl border border-dashed border-border bg-surface px-6 py-12 text-center",
   footer:
@@ -88,8 +84,6 @@ export const energyPatternStyles = {
     "[&>span]:text-[10px] [&>span]:font-[760] [&>span]:tracking-[0.08em] [&>span]:uppercase [&>strong]:text-[30px] [&>strong]:font-[690] [&>strong]:tracking-[-0.04em]",
   preview:
     "mt-5 rounded-xl border border-primary/20 bg-primary-soft p-4 text-[11px] leading-[1.6] text-primary-dark",
-  architectureCard:
-    "[&>span]:text-[9px] [&>span]:font-[780] [&>span]:tracking-[0.1em] [&>span]:text-primary-dark [&>span]:uppercase [&>h3]:mt-5 [&>h3]:text-[17px] [&>h3]:font-[700] [&>p]:mt-3 [&>p]:text-[11px] [&>p]:leading-[1.6] [&>p]:text-text-secondary",
   stateMessage:
     "[&>strong]:block [&>strong]:text-[16px] [&>p]:mx-auto [&>p]:mt-3 [&>p]:max-w-[560px] [&>p]:text-[12px] [&>p]:leading-[1.6] [&>p]:text-text-secondary",
 } as const;
