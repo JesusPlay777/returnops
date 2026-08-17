@@ -1,0 +1,55 @@
+# Xmart fictional demo scenario
+
+## Purpose
+
+The Xmart live demo will recreate one focused clean-room workflow inside
+ReturnOps: provisioning a fictional customer operator and assigning a
+synthetic device before reviewing the resulting security audit trail. It does
+not copy or connect to either original Xmart application.
+
+Every organization, person, identifier, network address, capacity, and event
+in this scenario is fictional and exists only for portfolio demonstration.
+
+## Canonical identities
+
+| Concept | Fictional value |
+| --- | --- |
+| Customer | `Atlas Field Services` |
+| Project | `Atlas Network Rollout` |
+| Acting administrator | `portfolio.admin@example.test` |
+| Target operator | `field.operator@example.test` |
+| Audit IP | `192.0.2.44` |
+| Device model | `Orion X5 Demo` |
+| Synthetic identifier | `DEMO-IMEI-0001` |
+
+The `.example.test` addresses cannot represent deliverable mailboxes. The IP
+belongs to `192.0.2.0/24`, reserved for documentation. The device identifier
+is deliberately non-numeric and prefixed with `DEMO-IMEI-` so it cannot be
+mistaken for a real device IMEI.
+
+## Contracted modules
+
+- Field Testing
+- Device Management
+- Log Center
+- Security Audit
+
+## Capacity timeline
+
+| Stage | Users | Storage | IMEIs | Visible change |
+| --- | ---: | ---: | ---: | --- |
+| Customer workspace | `4 / 10` | `6.4 / 20 GB` | `8 / 15` | Initial limits are reviewed. |
+| User access | `5 / 10` | `6.4 / 20 GB` | `8 / 15` | Activating the operator consumes one seat. |
+| Device assignment | `5 / 10` | `6.4 / 20 GB` | `9 / 15` | Assigning the synthetic device consumes one IMEI slot. |
+| Security audit | `5 / 10` | `6.4 / 20 GB` | `9 / 15` | Operations are recorded without changing capacity. |
+| Workflow complete | `5 / 10` | `6.4 / 20 GB` | `9 / 15` | The final state summarizes the completed provisioning. |
+
+Storage deliberately remains unchanged because neither activating a user nor
+assigning an existing synthetic device represents a file-storage operation.
+
+## Workflow boundary
+
+This phase defines only the canonical data and observable state changes. The
+following phases will add visitor-owned persistence, synchronous Django API
+transitions, and the `/xmart` interface while keeping the current single
+frontend, single backend, PostgreSQL database, and 256 MB runtime topology.
