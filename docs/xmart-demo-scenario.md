@@ -47,9 +47,48 @@ mistaken for a real device IMEI.
 Storage deliberately remains unchanged because neither activating a user nor
 assigning an existing synthetic device represents a file-storage operation.
 
-## Workflow boundary
+## State machine
 
-This phase defines only the canonical data and observable state changes. The
-following phases will add visitor-owned persistence, synchronous Django API
-transitions, and the `/xmart` interface while keeping the current single
-frontend, single backend, PostgreSQL database, and 256 MB runtime topology.
+```text
+CUSTOMER_WORKSPACE
+  -> USER_ACCESS
+  -> DEVICE_ASSIGNMENT
+  -> SECURITY_AUDIT
+  -> WORKFLOW_COMPLETE
+```
+
+Each call to the transition service advances exactly one stage:
+
+1. User access activates `field.operator@example.test`, consumes one seat,
+   and records both the activation and an in-app verification preview. It
+   never sends external email.
+2. Device assignment links `DEMO-IMEI-0001` to
+   `Atlas Network Rollout`, changes it from `AVAILABLE` to `ASSIGNED`,
+   and consumes one IMEI slot.
+3. Security audit reviews the accumulated fictional operations without
+   changing capacity.
+4. Workflow complete records the final provisioning result.
+
+At the terminal state, further transition calls return the same aggregate
+without updating timestamps or creating duplicate events.
+
+## Persistence boundary
+
+The scenario is stored as one `XmartDemoWorkspace` for each
+`VisitorSession`. Its contracted modules, target user, synthetic device, and
+ordered audit events are child records owned exclusively by that workspace.
+Creating the scenario is idempotent for one visitor, while resetting or
+deleting it cannot modify another visitor's aggregate.
+
+Deleting an expired `VisitorSession` cascades through every Xmart record. The
+existing cleanup command therefore needs no Xmart-specific query or scheduled
+process.
+
+The visitor and workspace rows are locked before each transition. Child
+updates, capacity changes, the new phase, and audit events commit in one
+database transaction. Reset deletes and recreates only the requesting
+visitor's aggregate.
+
+The next phases will add API routes and the `/xmart` interface. This workflow
+adds no dependency, environment variable, port, worker, broker, or service to
+the current 256 MB runtime.
