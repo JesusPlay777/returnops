@@ -133,6 +133,7 @@ INSTALLED_APPS = [
     "core",
     "returns.apps.ReturnsConfig",
     "energybil.apps.EnergybilConfig",
+    "xmart_demo.apps.XmartDemoConfig",
 ]
 if DJANGO_ENABLE_ADMIN:
     INSTALLED_APPS.insert(0, "django.contrib.admin")

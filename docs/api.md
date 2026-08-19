@@ -72,6 +72,9 @@ move these counters to a shared cache.
 | Energybil | `GET /api/v1/energybil/demo/` | Seed or retrieve the isolated meter-to-invoice scenario |
 | Energybil | `POST /api/v1/energybil/demo/advance/` | Commit the next synchronous billing stage |
 | Energybil | `POST /api/v1/energybil/demo/reset/` | Reset only the visitor's Energybil scenario |
+| Xmart | `GET /api/v1/xmart/demo/` | Seed or retrieve the isolated provisioning scenario |
+| Xmart | `POST /api/v1/xmart/demo/advance/` | Commit exactly one synchronous provisioning stage |
+| Xmart | `POST /api/v1/xmart/demo/reset/` | Reset only the visitor's Xmart scenario |
 | Customer | `GET, POST /api/v1/returns/` | List returns or create from catalog selections |
 | Customer | `GET, DELETE /api/v1/returns/{id}/` | Read or delete a draft |
 | Customer | `POST /api/v1/returns/{id}/submit/` | Submit or resubmit a return |
@@ -84,6 +87,8 @@ The exact request fields, enums, pagination envelope, response models, examples,
 and status codes live in the OpenAPI schema rather than being duplicated here.
 The Energybil state machine and simulation boundary are normative in the
 [Energybil demo contract](energybil-domain-contract.md).
+The fictional customer-provisioning state machine and its clean-room boundary
+are documented in the [Xmart demo scenario](xmart-demo-scenario.md).
 
 ## Error envelope
 

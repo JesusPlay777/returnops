@@ -34,7 +34,9 @@ Vitest covers the HTTP client, session bootstrap, API adapters, and pure workflo
 The Django suite also covers the complete Energybil state machine, exact invoice
 amounts, CSRF enforcement, idempotent completion, reset behavior, and isolation
 between two browser sessions. The frontend unit suite covers the three
-Energybil API commands.
+Energybil API commands. The Xmart suites apply the same checks to customer
+provisioning, exact capacity changes, terminal idempotency, visitor isolation,
+and its retrieve, advance, and reset adapters.
 
 ## Browser end-to-end tests
 
@@ -70,7 +72,10 @@ does not replace the complete lifecycle or visual suite.
 
 The lifecycle test creates a new isolated visitor, restores that visitor's fictional dataset, submits a return, requests information, resubmits it, approves it, and verifies the final five-event history. It never selects or submits a visitor UUID.
 
-The responsive audit covers customer and operations screens at 1440px and 390px, in English and Spanish. Representative screenshots live in `frontend/e2e/visual-baselines`.
+The responsive audit covers customer and operations screens at 1440px and
+390px, in English and Spanish. The Energybil and Xmart browser scenarios also
+exercise their complete workflows and mobile language controls. Representative
+returns screenshots live in `frontend/e2e/visual-baselines`.
 
 Use headed mode only for diagnosis:
 

@@ -2,10 +2,10 @@
 
 ## Purpose
 
-ReturnOps is an independent operations-demo platform. Its returns and Energybil
-workflows use fictional people, assets, identifiers, and operational data. The
-implementation is clean-room and does not depend on an original workplace
-application at runtime.
+ReturnOps is an independent operations-demo platform. Its returns, Energybil,
+and Xmart workflows use fictional people, assets, identifiers, and operational
+data. The implementation is clean-room and does not depend on an original
+workplace application at runtime.
 
 ## Runtime topology
 
@@ -42,8 +42,10 @@ returnops/
 
 The `returns` module owns the return-request domain. The focused `energybil`
 module owns the meter-to-invoice state machine and references only the shared
-visitor sandbox from `returns`. The generated `core` Django app contains only
-cross-cutting platform endpoints such as health checks.
+visitor sandbox from `returns`. The `xmart_demo` module owns the customer,
+operator, synthetic-device, capacity, and audit aggregate for the provisioning
+scenario. The generated `core` Django app contains only cross-cutting platform
+endpoints such as health checks.
 
 ## Configuration
 
@@ -114,12 +116,19 @@ simulated notification. Billing values, state, and audit events share one
 database transaction. The final stage records an in-app preview instead of
 dispatching email through Redis or Celery.
 
+The `/xmart` route is a third isolated feature module. Its shared client first
+resolves the visitor session and then retrieves one canonical customer
+workspace. Explicit CSRF-protected commands advance user activation, device
+assignment, security review, and terminal completion. The responsive interface
+renders capacity, contracted modules, user/device records, and the audit trail
+from server-owned state; it never accepts an ownership identifier.
+
 The frontend interface is implemented with Tailwind CSS 4. Semantic theme
 tokens and a minimal base layer live in `globals.css`; reusable returns styles
-remain in three statically discoverable TypeScript catalogs and Energybil uses
-the same control/surface/pattern split in a feature-local catalog. The complete
-conventions, accessibility contract, and visual verification workflow are defined in the
-[frontend interface system](frontend-interface-system.md).
+remain in three statically discoverable TypeScript catalogs, while Energybil
+and Xmart use the same control/surface/pattern split in feature-local catalogs.
+The complete conventions, accessibility contract, and visual verification
+workflow are defined in the [frontend interface system](frontend-interface-system.md).
 
 Next.js Route Handlers are not used as a general proxy for the returns API.
 The existing platform-health handler remains server-side because it checks
@@ -136,8 +145,9 @@ Cleanup is idempotent and session expiry remains enforced on every request, so
 startup cleanup is operational hygiene rather than an authorization boundary.
 Django exposes `/api/health/`, which performs a real database query. Next.js
 waits for the API health check before its container is considered healthy.
-Energybil rows cascade from the existing visitor record, so the same expiry and
-cleanup path covers both demos without a scheduler or second cleanup process.
+Energybil and Xmart rows cascade from the existing visitor record, so the same
+expiry and cleanup path covers all demos without a scheduler or second cleanup
+process.
 
 ## Security baseline
 

@@ -28,6 +28,9 @@ class OpenAPIContractTests(SimpleTestCase):
                 "/api/v1/energybil/demo/",
                 "/api/v1/energybil/demo/advance/",
                 "/api/v1/energybil/demo/reset/",
+                "/api/v1/xmart/demo/",
+                "/api/v1/xmart/demo/advance/",
+                "/api/v1/xmart/demo/reset/",
                 "/api/v1/returns/",
                 "/api/v1/returns/{id}/",
                 "/api/v1/returns/{id}/submit/",
@@ -65,12 +68,22 @@ class OpenAPIContractTests(SimpleTestCase):
         energy_advance = self.schema["paths"][
             "/api/v1/energybil/demo/advance/"
         ]["post"]
+        xmart_get = self.schema["paths"]["/api/v1/xmart/demo/"]["get"]
+        xmart_advance = self.schema["paths"][
+            "/api/v1/xmart/demo/advance/"
+        ]["post"]
 
         self.assertNotIn("security", session_get)
         self.assertIn("429", session_get["responses"])
         self.assertIn(
             "429",
             self.schema["paths"]["/api/v1/demo/reset/"]["post"]["responses"],
+        )
+        self.assertIn(
+            "429",
+            self.schema["paths"]["/api/v1/xmart/demo/reset/"]["post"][
+                "responses"
+            ],
         )
         self.assertEqual(
             returns_get["security"],
@@ -86,6 +99,14 @@ class OpenAPIContractTests(SimpleTestCase):
         )
         self.assertEqual(
             energy_advance["security"],
+            [{"visitorSession": [], "csrfToken": []}],
+        )
+        self.assertEqual(
+            xmart_get["security"],
+            [{"visitorSession": []}],
+        )
+        self.assertEqual(
+            xmart_advance["security"],
             [{"visitorSession": [], "csrfToken": []}],
         )
         self.assertEqual(

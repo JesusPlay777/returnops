@@ -864,6 +864,94 @@ paths:
               schema:
                 $ref: '#/components/schemas/APIError'
           description: Stable API error envelope.
+  /api/v1/xmart/demo/:
+    get:
+      operationId: retrieveXmartDemo
+      description: Seeds once and returns the current visitor's fictional customer,
+        user, device, capacity, and audit state. No ownership identifier is accepted.
+      summary: Retrieve the isolated Xmart provisioning scenario
+      tags:
+      - Xmart demo
+      security:
+      - visitorSession: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XmartDemo'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/xmart/demo/advance/:
+    post:
+      operationId: advanceXmartDemo
+      description: Advances exactly one stage in a database transaction. External
+        email, device, and background-worker operations are represented only by explicit
+        fictional in-app records.
+      summary: Run the next synchronous provisioning stage
+      tags:
+      - Xmart demo
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XmartDemo'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+  /api/v1/xmart/demo/reset/:
+    post:
+      operationId: resetXmartDemo
+      summary: Reset only the current visitor's Xmart scenario
+      tags:
+      - Xmart demo
+      security:
+      - visitorSession: []
+        csrfToken: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/XmartDemo'
+          description: ''
+        '401':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
+        '429':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIError'
+          description: Stable API error envelope.
 components:
   schemas:
     APIError:
@@ -1592,6 +1680,243 @@ components:
       - dataset_ready
       - expires_at
       - supported_locales
+    XmartAuditEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        sequence:
+          type: integer
+          readOnly: true
+        phase:
+          type: string
+          readOnly: true
+        event_type:
+          type: string
+          readOnly: true
+        actor_email:
+          type: string
+          format: email
+          readOnly: true
+        subject_reference:
+          type: string
+          readOnly: true
+        source_ip:
+          type: string
+          readOnly: true
+        reason:
+          type: string
+          readOnly: true
+        occurred_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - actor_email
+      - event_type
+      - id
+      - occurred_at
+      - phase
+      - reason
+      - sequence
+      - source_ip
+      - subject_reference
+    XmartCapacities:
+      type: object
+      properties:
+        users:
+          allOf:
+          - $ref: '#/components/schemas/XmartCountCapacity'
+          readOnly: true
+        storage:
+          allOf:
+          - $ref: '#/components/schemas/XmartStorageCapacity'
+          readOnly: true
+        imeis:
+          allOf:
+          - $ref: '#/components/schemas/XmartCountCapacity'
+          readOnly: true
+      required:
+      - imeis
+      - storage
+      - users
+    XmartContractedModule:
+      type: object
+      properties:
+        name:
+          type: string
+          readOnly: true
+        position:
+          type: integer
+          readOnly: true
+      required:
+      - name
+      - position
+    XmartCountCapacity:
+      type: object
+      properties:
+        used:
+          type: integer
+          readOnly: true
+        limit:
+          type: integer
+          readOnly: true
+      required:
+      - limit
+      - used
+    XmartDemo:
+      type: object
+      properties:
+        customer_name:
+          type: string
+          readOnly: true
+        project_name:
+          type: string
+          readOnly: true
+        actor_email:
+          type: string
+          format: email
+          readOnly: true
+        actor_ip:
+          type: string
+          readOnly: true
+        disclosure:
+          type: string
+          readOnly: true
+        phase:
+          type: string
+          readOnly: true
+        next_phase:
+          type: string
+          nullable: true
+          readOnly: true
+        is_complete:
+          type: boolean
+          readOnly: true
+        did_advance:
+          type: boolean
+          readOnly: true
+        capacities:
+          allOf:
+          - $ref: '#/components/schemas/XmartCapacities'
+          readOnly: true
+        modules:
+          type: array
+          items:
+            $ref: '#/components/schemas/XmartContractedModule'
+          readOnly: true
+        target_user:
+          allOf:
+          - $ref: '#/components/schemas/XmartDemoUser'
+          readOnly: true
+        device:
+          allOf:
+          - $ref: '#/components/schemas/XmartDemoDevice'
+          readOnly: true
+        audit_events:
+          type: array
+          items:
+            $ref: '#/components/schemas/XmartAuditEvent'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - actor_email
+      - actor_ip
+      - audit_events
+      - capacities
+      - customer_name
+      - device
+      - did_advance
+      - disclosure
+      - is_complete
+      - modules
+      - next_phase
+      - phase
+      - project_name
+      - target_user
+      - updated_at
+    XmartDemoDevice:
+      type: object
+      properties:
+        model_name:
+          type: string
+          readOnly: true
+        synthetic_imei:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        assigned_project:
+          type: string
+          readOnly: true
+        assigned_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - assigned_at
+      - assigned_project
+      - model_name
+      - status
+      - synthetic_imei
+    XmartDemoUser:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          readOnly: true
+        role:
+          type: string
+          readOnly: true
+        status:
+          type: string
+          readOnly: true
+        seat_consumed:
+          type: boolean
+          readOnly: true
+        verification_resends:
+          type: integer
+          readOnly: true
+        activated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - activated_at
+      - email
+      - role
+      - seat_consumed
+      - status
+      - verification_resends
+    XmartStorageCapacity:
+      type: object
+      properties:
+        used:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          readOnly: true
+        limit:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,6}(?:\.\d{0,2})?$
+          readOnly: true
+        unit:
+          type: string
+          readOnly: true
+      required:
+      - limit
+      - unit
+      - used
   securitySchemes:
     csrfToken:
       type: apiKey
