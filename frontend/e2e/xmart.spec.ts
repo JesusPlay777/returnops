@@ -84,4 +84,49 @@ test.describe("Xmart live demo", () => {
     );
     expect(hasHorizontalOverflow).toBe(false);
   });
+
+  test("isolates the workspace between regular and private sessions", async ({
+    browser,
+  }) => {
+    const regularContext = await browser.newContext();
+    const privateContext = await browser.newContext();
+
+    try {
+      const regularPage = await regularContext.newPage();
+      await regularPage.goto("/xmart");
+      const advance = regularPage.getByRole("button", {
+        name: "Run next stage",
+      });
+      await expect(advance).toBeEnabled({ timeout: 20_000 });
+      await advance.click();
+      await expect(
+        regularPage.locator('[aria-current="step"]'),
+      ).toContainText("User access");
+      await expect(
+        regularPage.getByText("5 / 10", { exact: true }),
+      ).toBeVisible();
+
+      const privatePage = await privateContext.newPage();
+      await privatePage.goto("/xmart");
+      await expect(
+        privatePage.getByRole("button", { name: "Run next stage" }),
+      ).toBeEnabled({ timeout: 20_000 });
+      await expect(
+        privatePage.locator('[aria-current="step"]'),
+      ).toContainText("Customer workspace");
+      await expect(
+        privatePage.getByText("4 / 10", { exact: true }),
+      ).toBeVisible();
+
+      await expect(
+        regularPage.locator('[aria-current="step"]'),
+      ).toContainText("User access");
+      await expect(
+        regularPage.getByText("5 / 10", { exact: true }),
+      ).toBeVisible();
+    } finally {
+      await regularContext.close();
+      await privateContext.close();
+    }
+  });
 });
