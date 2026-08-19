@@ -1,9 +1,9 @@
 # ReturnOps
 
 ReturnOps is a clean-room, bilingual operations-demo platform. It contains a
-realistic customer-to-operations returns workflow and a focused Energybil
-meter-to-invoice workflow, using only fictional data and independently written
-code.
+realistic customer-to-operations returns workflow, a focused Energybil
+meter-to-invoice workflow, and an isolated Xmart customer-provisioning
+workflow, using only fictional data and independently written code.
 
 This repository is a monorepo containing:
 
@@ -68,6 +68,7 @@ Open:
 
 - Customer returns demo: http://localhost:3000
 - Energybil meter-to-invoice demo: http://localhost:3000/energybil
+- Xmart customer-provisioning demo: http://localhost:3000/xmart
 - API health: http://localhost:8000/api/health/
 - API documentation: http://localhost:8000/api/v1/docs/
 - OpenAPI schema: http://localhost:8000/api/v1/schema/
@@ -95,6 +96,12 @@ advances a fictional gateway reading through validation, consumption,
 invoicing, and an explicitly simulated notification. Every stage and audit
 event is committed synchronously in PostgreSQL; Redis, Celery, email delivery,
 and a second runtime service are intentionally absent.
+
+The Xmart route uses that same browser session to create a separate fictional
+customer workspace. Four synchronous commands activate an operator, assign a
+synthetic device, consolidate its audit trail, and complete provisioning.
+Capacity changes and security records remain isolated to the current visitor;
+no email, device integration, or background worker is invoked.
 
 ## Common commands
 
@@ -158,6 +165,7 @@ The application itself uses PostgreSQL in Docker and in deployed environments.
 - [OpenAPI schema snapshot](docs/openapi.yaml)
 - [Returns domain and visitor-isolation contract](docs/returns-domain-contract.md)
 - [Energybil synchronous demo contract](docs/energybil-domain-contract.md)
+- [Xmart fictional demo scenario](docs/xmart-demo-scenario.md)
 - [ADR 0001: synchronous core](docs/decisions/0001-synchronous-core.md)
 - [ADR 0002: reduce Energybil to one synchronous demo](docs/decisions/0002-energybil-synchronous-demo.md)
 - [Automated testing](docs/testing.md)

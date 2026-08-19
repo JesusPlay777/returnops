@@ -104,6 +104,11 @@ API accepts no visitor or workspace identifier in a path, query, header, or
 request body. Both write operations require the session's CSRF token, and
 reset uses the same per-visitor throttle as the other portfolio demos.
 
-The next phase will add the `/xmart` interface. This workflow adds no
-dependency, environment variable, port, worker, broker, or service to the
-current 256 MB runtime.
+The bilingual `/xmart` interface retrieves this aggregate through the shared
+session-aware browser client. It presents customer capacity, contracted
+modules, user access, synthetic device assignment, the five-stage workflow,
+and the ordered audit trail at desktop and mobile widths. Its controls call
+only the explicit advance and reset commands.
+
+This workflow adds no dependency, environment variable, port, worker, broker,
+or service to the current 256 MB runtime.

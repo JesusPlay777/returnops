@@ -9,7 +9,8 @@ reduced-motion behavior; it does not contain component selectors.
 
 The interface system covers the customer center, the three-step return
 workflow, the operations queue, the full operations review, and the Energybil
-meter-to-invoice route in English and Spanish at desktop and mobile widths.
+meter-to-invoice and Xmart provisioning routes in English and Spanish at
+desktop and mobile widths.
 
 ## Sources of truth
 
@@ -25,6 +26,8 @@ The visual implementation is deliberately split by responsibility:
   decisions.
 - `src/features/energybil/components/styles.ts` applies the same three-way
   control, surface, and pattern split within the independent Energybil feature.
+- `src/features/xmart/components/styles.ts` applies that split to capacity,
+  provisioning records, workflow stages, and audit events in the Xmart feature.
 - Small, self-contained primitives such as badges and the loading spinner may
   keep a complete static class string beside their markup.
 
@@ -53,8 +56,8 @@ placement modifier rather than a new reusable component style.
 
 The returns consolidation audit found 236 static class-string literals across
 its three catalogs and zero exact duplicate complete strings after extracting
-the shared field, message, and heading-row primitives. Energybil keeps its
-additional static strings inside its feature-local catalog.
+the shared field, message, and heading-row primitives. Energybil and Xmart keep
+their additional static strings inside their feature-local catalogs.
 
 ## Accessibility contract
 
