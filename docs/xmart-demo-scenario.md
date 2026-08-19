@@ -89,6 +89,21 @@ updates, capacity changes, the new phase, and audit events commit in one
 database transaction. Reset deletes and recreates only the requesting
 visitor's aggregate.
 
-The next phases will add API routes and the `/xmart` interface. This workflow
-adds no dependency, environment variable, port, worker, broker, or service to
-the current 256 MB runtime.
+## HTTP surface
+
+The versioned API exposes three routes:
+
+| Method and path | Purpose |
+| --- | --- |
+| `GET /api/v1/xmart/demo/` | Seed once or retrieve the current state. |
+| `POST /api/v1/xmart/demo/advance/` | Commit exactly one synchronous transition. |
+| `POST /api/v1/xmart/demo/reset/` | Recreate only the requesting visitor's scenario. |
+
+Ownership is resolved exclusively from the opaque Django session cookie. The
+API accepts no visitor or workspace identifier in a path, query, header, or
+request body. Both write operations require the session's CSRF token, and
+reset uses the same per-visitor throttle as the other portfolio demos.
+
+The next phase will add the `/xmart` interface. This workflow adds no
+dependency, environment variable, port, worker, broker, or service to the
+current 256 MB runtime.
