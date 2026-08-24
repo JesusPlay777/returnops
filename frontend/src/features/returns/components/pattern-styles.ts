@@ -2,7 +2,7 @@ export const customerPatternStyles = {
   brand:
     "inline-flex items-center gap-[11px] text-[16px] font-[750] tracking-[-0.025em] text-ink no-underline",
   brandMark:
-    "grid size-[34px] place-items-center rounded-[10px] bg-primary text-[14px] font-extrabold text-surface",
+    "grid size-[34px] place-items-center rounded-[10px] bg-primary text-[14px] font-extrabold text-on-primary",
   roleBar:
     "[&_button]:relative [&_button]:flex [&_button]:h-[62px] [&_button]:items-center [&_button]:gap-2 [&_button]:border-0 [&_button]:bg-transparent [&_button]:p-0 [&_button]:text-[13px] [&_button]:font-[650] [&_button]:text-text-secondary [&_button:disabled]:cursor-not-allowed [&_button:disabled]:opacity-[0.58] [&_button_span]:rounded-full [&_button_span]:bg-border [&_button_span]:px-[6px] [&_button_span]:py-[3px] [&_button_span]:text-[8px] [&_button_span]:tracking-[0.08em] [&_button_span]:uppercase",
   roleActive:
@@ -20,7 +20,7 @@ export const customerPatternStyles = {
   sectionHeader:
     "[&_h2]:mt-2 [&_h2]:text-[clamp(26px,3vw,36px)] [&_h2]:font-[620] [&_h2]:tracking-[-0.045em] [&>p]:text-[12px] [&>p]:text-text-secondary",
   tableFrame:
-    "[&_table]:w-full [&_table]:min-w-[850px] [&_table]:border-collapse [&_table]:text-left [&_th]:h-[54px] [&_th]:bg-[#f8faf9] [&_th]:px-[18px] [&_th]:text-[10px] [&_th]:font-[750] [&_th]:tracking-[0.075em] [&_th]:text-text-secondary [&_th]:uppercase [&_td]:h-[76px] [&_td]:whitespace-nowrap [&_td]:border-t [&_td]:border-[#e6ebe9] [&_td]:px-[18px] [&_td]:text-[13px] [&_td]:text-ink [&_tbody_tr]:transition-colors [&_tbody_tr]:duration-[120ms] [&_tbody_tr]:ease-[ease] [&_tbody_tr:hover]:bg-[#f8fbfa]",
+    "[&_table]:w-full [&_table]:min-w-[850px] [&_table]:border-collapse [&_table]:text-left [&_th]:h-[54px] [&_th]:bg-surface-muted [&_th]:px-[18px] [&_th]:text-[10px] [&_th]:font-[750] [&_th]:tracking-[0.075em] [&_th]:text-text-secondary [&_th]:uppercase [&_td]:h-[76px] [&_td]:whitespace-nowrap [&_td]:border-t [&_td]:border-border [&_td]:px-[18px] [&_td]:text-[13px] [&_td]:text-ink [&_tbody_tr]:transition-colors [&_tbody_tr]:duration-[120ms] [&_tbody_tr]:ease-[ease] [&_tbody_tr:hover]:bg-surface-subtle",
   referenceButton:
     "cursor-pointer border-0 bg-transparent font-[750] text-primary hover:underline hover:underline-offset-[3px]",
   viewButton:
@@ -77,10 +77,10 @@ export const workflowPatternStyles = {
   workflowHeader:
     "[&_strong]:text-[14px] [&>span]:text-[12px] [&>span]:font-bold [&>span]:text-text-secondary",
   progress:
-    "before:absolute before:top-[47px] before:right-[18%] before:left-[18%] before:h-0.5 before:bg-[#b7d9d4] before:content-[''] max-[640px]:before:right-[19%] max-[640px]:before:left-[19%]",
+    "before:absolute before:top-[47px] before:right-[18%] before:left-[18%] before:h-0.5 before:bg-border-strong before:content-[''] max-[640px]:before:right-[19%] max-[640px]:before:left-[19%]",
   progressButton:
     "relative z-[1] grid cursor-pointer justify-items-center gap-2 border-0 bg-transparent text-[11px] font-bold text-primary-dark disabled:cursor-not-allowed disabled:opacity-42 [&>span]:grid [&>span]:size-10 [&>span]:place-items-center [&>span]:rounded-full [&>span]:border-2 [&>span]:border-primary [&>span]:bg-surface [&>span]:text-[13px] [&>span]:text-primary",
-  progressButtonActive: "[&>span]:bg-primary! [&>span]:text-surface!",
+  progressButtonActive: "[&>span]:bg-primary! [&>span]:text-on-primary!",
   stepHeading:
     "[&_h1]:text-[clamp(28px,5vw,38px)] [&_h1]:leading-[1.05] [&_h1]:font-[630] [&_h1]:tracking-[-0.045em] [&_p]:mt-3 [&_p]:max-w-[570px] [&_p]:text-[13px] [&_p]:leading-[1.6] [&_p]:text-text-secondary",
   itemIcon:
@@ -118,14 +118,15 @@ export const operationsPatternStyles = {
     "[&_nav]:mt-12 [&_nav]:-mx-[14px] [&_nav]:grid [&_nav]:gap-[6px] [&_nav_span]:grid [&_nav_span]:min-h-[52px] [&_nav_span]:grid-cols-[24px_1fr] [&_nav_span]:items-center [&_nav_span]:gap-[10px] [&_nav_span]:rounded-[7px] [&_nav_span]:border-0 [&_nav_span]:bg-transparent [&_nav_span]:px-[14px] [&_nav_span]:text-left [&_nav_span]:text-[13px] [&_nav_span]:text-[#c6d4d1] [&_nav_button]:grid [&_nav_button]:min-h-[52px] [&_nav_button]:cursor-pointer [&_nav_button]:grid-cols-[24px_1fr] [&_nav_button]:items-center [&_nav_button]:gap-[10px] [&_nav_button]:rounded-[7px] [&_nav_button]:border-0 [&_nav_button]:bg-transparent [&_nav_button]:px-[14px] [&_nav_button]:text-left [&_nav_button]:text-[13px] [&_nav_button]:text-[#c6d4d1] [&_nav_b]:text-center [&_nav_b]:text-[17px] [&_nav_b]:font-normal",
   sidebarBrand: "text-[25px] font-[760] tracking-[-0.045em]",
   navActive:
-    "bg-[#0b756e]! text-surface! shadow-[inset_3px_0_#27c1b4]",
+    "bg-primary! text-on-primary! shadow-[inset_3px_0_var(--color-primary-dark)]",
   switchRole:
     "mt-auto flex min-h-12 cursor-pointer items-center justify-between rounded-lg border border-[#67807c] bg-transparent px-[14px] text-[12px] text-[#eef7f5]",
   mobileBrand:
-    "hidden max-[760px]:mr-auto max-[760px]:inline max-[760px]:text-[20px] max-[760px]:font-[760] max-[760px]:tracking-[-0.04em]",
+    "hidden max-[760px]:mr-auto max-[760px]:inline max-[760px]:text-[20px] max-[760px]:font-[760] max-[760px]:tracking-[-0.04em] max-[420px]:hidden!",
   roleButton:
-    "min-h-10 rounded-[7px] border border-primary bg-surface px-5 text-[11px] font-[750] tracking-[0.04em] text-primary-dark uppercase max-[760px]:min-h-[34px] max-[760px]:border-[rgb(255_255_255_/_38%)] max-[760px]:bg-[rgb(0_0_0_/_8%)] max-[760px]:px-[10px] max-[760px]:text-surface",
-  mobileSwitch: "hidden",
+    "min-h-10 rounded-[7px] border border-primary bg-surface px-5 text-[11px] font-[750] tracking-[0.04em] text-primary-dark uppercase max-[760px]:hidden",
+  mobileSwitch:
+    "hidden min-h-[34px] cursor-pointer items-center rounded-full border border-[rgb(255_255_255_/_38%)] bg-[rgb(0_0_0_/_8%)] px-[11px] text-[10px] font-[750] tracking-[0.035em] text-[#eef7f5] uppercase max-[760px]:inline-flex",
   heading:
     "[&_p]:text-[10px] [&_p]:font-extrabold [&_p]:tracking-[0.1em] [&_p]:text-primary [&_p]:uppercase [&_h1]:mt-2 [&_h1]:text-[clamp(32px,4vw,46px)] [&_h1]:font-[650] [&_h1]:tracking-[-0.045em] [&_h1]:max-[760px]:text-[31px] [&_span]:mt-[10px] [&_span]:block [&_span]:text-[14px] [&_span]:text-text-secondary [&_span]:max-[760px]:text-[12px] [&_span]:max-[760px]:leading-normal",
   stats:
@@ -142,31 +143,31 @@ export const operationsPatternStyles = {
   resetButton:
     "max-[1080px]:col-start-3 max-[760px]:col-start-2 max-[420px]:col-start-1",
   tableFrame:
-    "[&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_th]:h-[52px] [&_th]:bg-[#fafbfb] [&_th]:px-[18px] [&_th]:text-[9px] [&_th]:font-[780] [&_th]:tracking-[0.07em] [&_th]:text-text-secondary [&_th]:uppercase [&_td]:h-[66px] [&_td]:whitespace-nowrap [&_td]:border-t [&_td]:border-[#e6ebe9] [&_td]:px-[18px] [&_td]:text-[12px] [&_tbody_tr[data-expanded=true]]:bg-[#f2f8f7] [&_td:last-child]:text-[11px] [&_td:last-child]:text-text-secondary",
+    "[&_table]:w-full [&_table]:border-collapse [&_table]:text-left [&_th]:h-[52px] [&_th]:bg-surface-muted [&_th]:px-[18px] [&_th]:text-[9px] [&_th]:font-[780] [&_th]:tracking-[0.07em] [&_th]:text-text-secondary [&_th]:uppercase [&_td]:h-[66px] [&_td]:whitespace-nowrap [&_td]:border-t [&_td]:border-border [&_td]:px-[18px] [&_td]:text-[12px] [&_tbody_tr[data-expanded=true]]:bg-primary-soft [&_td:last-child]:text-[11px] [&_td:last-child]:text-text-secondary",
   rowToggle:
-    "group -ml-1 inline-flex min-h-9 cursor-pointer items-center gap-2.5 rounded-lg border-0 bg-transparent py-1 pr-2 pl-1 text-[13px] font-[760] text-primary-dark transition-colors hover:bg-white/75 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+    "group -ml-1 inline-flex min-h-9 cursor-pointer items-center gap-2.5 rounded-lg border-0 bg-transparent py-1 pr-2 pl-1 text-[13px] font-[760] text-primary-dark transition-colors hover:bg-surface-subtle focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
   rowDisclosure:
-    "grid size-7 shrink-0 place-items-center rounded-md border border-border bg-surface text-primary-dark shadow-[0_1px_2px_rgb(15_53_50_/_6%)] transition-[border-color,background-color] group-hover:border-[#9bc6c1] group-hover:bg-primary-soft",
+    "grid size-7 shrink-0 place-items-center rounded-md border border-border bg-surface text-primary-dark shadow-[0_1px_2px_rgb(15_53_50_/_6%)] transition-[border-color,background-color] group-hover:border-border-strong group-hover:bg-primary-soft",
   disclosureIcon:
     "size-3.5 transition-transform duration-200 ease-out motion-reduce:transition-none",
   expandedRow:
-    "[&>td]:h-auto [&>td]:whitespace-normal [&>td]:bg-[#f2f8f7] [&>td]:px-[10px] [&>td]:pt-0 [&>td]:pb-[10px]",
+    "[&>td]:h-auto [&>td]:whitespace-normal [&>td]:bg-primary-soft [&>td]:px-[10px] [&>td]:pt-0 [&>td]:pb-[10px]",
   expandedHeader:
     "[&_strong]:text-[10px] [&_strong]:tracking-[0.045em] [&_strong]:uppercase [&_button]:cursor-pointer [&_button]:border-0 [&_button]:bg-transparent [&_button]:text-[11px] [&_button]:font-bold [&_button]:text-primary-dark [&_button:hover]:underline [&_button:hover]:underline-offset-[3px]",
   productIcon:
-    "grid size-[46px] place-items-center rounded-xl border border-[#b8d9d4] bg-primary-soft text-primary-dark shadow-[0_1px_2px_rgb(15_53_50_/_5%)] max-[760px]:size-[42px]",
+    "grid size-[46px] place-items-center rounded-xl border border-border-strong bg-primary-soft text-primary-dark shadow-[0_1px_2px_rgb(15_53_50_/_5%)] max-[760px]:size-[42px]",
   productCopy:
     "[&_strong]:text-[12px] [&_p]:mt-[6px] [&_p]:text-[10px] [&_p]:leading-[1.4] [&_p]:text-text-secondary",
   evidenceCount:
-    "rounded-[6px] border border-[#b8d9d4] bg-primary-soft px-[9px] py-[6px] text-[9px] font-[760] text-primary-dark uppercase max-[760px]:col-start-2 max-[760px]:justify-self-start",
+    "rounded-[6px] border border-border-strong bg-primary-soft px-[9px] py-[6px] text-[9px] font-[760] text-primary-dark uppercase max-[760px]:col-start-2 max-[760px]:justify-self-start",
   evidenceList:
-    "col-start-2 col-end-4 flex flex-wrap gap-[7px] [&_span]:rounded-[6px] [&_span]:bg-[#f0f3f2] [&_span]:px-2 [&_span]:py-[6px] [&_span]:text-[9px] [&_span]:text-text-secondary max-[760px]:col-end-3",
+    "col-start-2 col-end-4 flex flex-wrap gap-[7px] [&_span]:rounded-[6px] [&_span]:bg-surface-muted [&_span]:px-2 [&_span]:py-[6px] [&_span]:text-[9px] [&_span]:text-text-secondary max-[760px]:col-end-3",
   evidenceNote:
-    "border-t border-border bg-[#fafbfb] px-[18px] py-3 text-[10px] text-text-secondary",
+    "border-t border-border bg-surface-muted px-[18px] py-3 text-[10px] text-text-secondary",
   mobileCardHeader:
     "[&>strong]:text-[17px] [&_small]:col-start-2 [&_small]:col-end-5 [&_small]:text-[9px] [&_small]:text-text-secondary",
   mobileChevron:
-    "row-span-2 grid size-[30px] place-items-center rounded-lg border border-[#b8d9d4] bg-primary-soft text-primary-dark",
+    "row-span-2 grid size-[30px] place-items-center rounded-lg border border-border-strong bg-primary-soft text-primary-dark",
   mobileMenu: "justify-self-end text-[20px]",
   mobileCustomer: "col-start-2 col-end-5 text-[12px] font-[650]",
   errorState:
@@ -193,13 +194,13 @@ export const reviewPatternStyles = {
   itemFacts:
     "[&_dt]:text-[8px] [&_dt]:font-[780] [&_dt]:tracking-[0.08em] [&_dt]:text-text-secondary [&_dt]:uppercase [&_dd]:mt-1 [&_dd]:text-[10px] [&_dd]:font-[650]",
   detailBlock:
-    "mt-[15px] border-t border-[#e8edeb] pt-[14px] [&>strong]:text-[9px] [&>strong]:tracking-[0.035em] [&>strong]:uppercase [&>p]:mt-[6px] [&>p]:text-[10px] [&>p]:leading-[1.55] [&>p]:text-text-secondary",
+    "mt-[15px] border-t border-border pt-[14px] [&>strong]:text-[9px] [&>strong]:tracking-[0.035em] [&>strong]:uppercase [&>p]:mt-[6px] [&>p]:text-[10px] [&>p]:leading-[1.55] [&>p]:text-text-secondary",
   evidenceCard:
     "[&>span]:grid [&>span]:size-[30px] [&>span]:flex-none [&>span]:place-items-center [&>span]:rounded-[7px] [&>span]:bg-primary-soft [&>span]:text-primary [&_div]:min-w-0 [&_strong]:block [&_strong]:overflow-hidden [&_strong]:text-ellipsis [&_strong]:whitespace-nowrap [&_strong]:text-[9px] [&_small]:mt-[3px] [&_small]:block [&_small]:overflow-hidden [&_small]:text-ellipsis [&_small]:whitespace-nowrap [&_small]:text-[8px] [&_small]:text-text-secondary",
   timeline:
-    "mt-[14px] ml-3 list-none border-l border-[#bdd3cf] pl-[22px] [&_li]:relative [&_li]:pb-5 [&_li:last-child]:pb-0 [&_strong]:block [&_strong]:text-[10px] [&_small]:mt-[3px] [&_small]:block [&_small]:text-[8px] [&_small]:text-text-secondary [&_p]:mt-[5px] [&_p]:text-[9px] [&_p]:leading-[1.45] [&_p]:text-text-secondary",
+    "mt-[14px] ml-3 list-none border-l border-border-strong pl-[22px] [&_li]:relative [&_li]:pb-5 [&_li:last-child]:pb-0 [&_strong]:block [&_strong]:text-[10px] [&_small]:mt-[3px] [&_small]:block [&_small]:text-[8px] [&_small]:text-text-secondary [&_p]:mt-[5px] [&_p]:text-[9px] [&_p]:leading-[1.45] [&_p]:text-text-secondary",
   timelineDot:
-    "absolute top-0.5 left-[-28px] size-[11px] rounded-full border-[3px] border-[#f6f8f7] bg-primary shadow-[0_0_0_1px_#8bb9b3] data-[status=NEEDS_INFORMATION]:bg-warning data-[status=APPROVED]:bg-success data-[status=REJECTED]:bg-danger",
+    "absolute top-0.5 left-[-28px] size-[11px] rounded-full border-[3px] border-canvas bg-primary shadow-[0_0_0_1px_var(--color-border-strong)] data-[status=NEEDS_INFORMATION]:bg-warning data-[status=APPROVED]:bg-success data-[status=REJECTED]:bg-danger",
   panelEyebrow:
     "text-[9px] font-extrabold tracking-[0.11em] text-primary uppercase",
   panelTitle: "mt-[7px] text-[20px] font-[670] tracking-[-0.03em]",

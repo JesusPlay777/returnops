@@ -3,7 +3,7 @@ type LocaleSwitchVariant = "customer" | "operations";
 
 const containerStyles: Record<LocaleSwitchVariant, string> = {
   customer:
-    "flex items-center gap-0.5 rounded-[9px] border border-border bg-[rgb(255_255_255_/_72%)] p-[3px]",
+    "flex items-center gap-0.5 rounded-[9px] border border-border bg-surface/75 p-[3px] shadow-[0_8px_24px_rgb(7_31_28_/_6%)] backdrop-blur-[10px]",
   operations:
     "flex gap-0.5 border-border border-l pl-[22px] max-[760px]:border-l-0 max-[760px]:pl-0",
 };
@@ -16,9 +16,9 @@ const buttonStyles: Record<LocaleSwitchVariant, string> = {
 };
 
 const activeButtonStyles: Record<LocaleSwitchVariant, string> = {
-  customer: "bg-ink text-surface",
+  customer: "bg-primary text-on-primary",
   operations:
-    "bg-ink text-surface max-[760px]:bg-surface max-[760px]:text-primary-dark",
+    "bg-primary text-on-primary max-[760px]:bg-on-primary max-[760px]:text-[#06201d]",
 };
 
 const inactiveButtonStyles: Record<LocaleSwitchVariant, string> = {

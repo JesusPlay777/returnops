@@ -14,7 +14,7 @@ const baseStyles: Record<ReturnStatusBadgeVariant, string> = {
 };
 
 const customerToneStyles: Record<ReturnStatus, string> = {
-  DRAFT: "bg-[#edf1ef] text-[#53615e]",
+  DRAFT: "bg-surface-muted text-text-secondary",
   SUBMITTED: "bg-primary-soft text-primary-dark",
   NEEDS_INFORMATION: "bg-warning-soft text-warning",
   APPROVED: "bg-success-soft text-success",
@@ -22,11 +22,11 @@ const customerToneStyles: Record<ReturnStatus, string> = {
 };
 
 const operationsToneStyles: Record<ReturnStatus, string> = {
-  DRAFT: "border-[#b8d9d4] bg-primary-soft text-primary-dark",
-  SUBMITTED: "border-[#b8d9d4] bg-primary-soft text-primary-dark",
-  NEEDS_INFORMATION: "border-[#efd08a] bg-warning-soft text-warning",
-  APPROVED: "border-[#bbd9c6] bg-success-soft text-success",
-  REJECTED: "border-[#efc3be] bg-danger-soft text-danger",
+  DRAFT: "border-border-strong bg-primary-soft text-primary-dark",
+  SUBMITTED: "border-border-strong bg-primary-soft text-primary-dark",
+  NEEDS_INFORMATION: "border-warning/45 bg-warning-soft text-warning",
+  APPROVED: "border-success/45 bg-success-soft text-success",
+  REJECTED: "border-danger/45 bg-danger-soft text-danger",
 };
 
 export function ReturnStatusBadge({

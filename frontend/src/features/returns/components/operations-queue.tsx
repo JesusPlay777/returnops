@@ -25,6 +25,7 @@ import type {
   ReturnRequestSummary,
 } from "@/features/returns/types";
 import { ApiError, toApiError } from "@/lib/api/client";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 import { buttonStyles, fieldStyles } from "./control-styles";
 import { DemoBadge } from "./demo-badge";
@@ -444,6 +445,7 @@ export default function OperationsQueue({
             onLocaleChange={onLocaleChange}
             variant="operations"
           />
+          <ThemeSwitch locale={locale} variant="operations" />
           <button className={operationsPatternStyles.mobileSwitch} onClick={onSwitchToCustomer} type="button">{t.customerView}</button>
         </header>
 

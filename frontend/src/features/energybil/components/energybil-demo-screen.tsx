@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { ThemeSwitch } from "@/components/theme-switch";
 import {
   advanceEnergyDemo,
   resetEnergyDemo,
@@ -264,6 +265,7 @@ export default function EnergybilDemoScreen() {
             onLocaleChange={setLocale}
             variant="customer"
           />
+          <ThemeSwitch locale={locale} variant="customer" />
         </div>
       </header>
 

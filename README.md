@@ -31,6 +31,7 @@ The public deployment is available at:
 - Portfolio: <https://jesus-rojas-portfolio.vercel.app>
 - ReturnOps live demo: <https://returnops-six.vercel.app>
 - Energybil live demo: <https://returnops-six.vercel.app/energybil>
+- Xmart live demo: <https://returnops-six.vercel.app/xmart>
 - API health: <https://http--returnops-api--hk88tqk8y2dz.code.run/api/health/>
 - API documentation: <https://http--returnops-api--hk88tqk8y2dz.code.run/api/v1/docs/>
 
@@ -102,6 +103,12 @@ customer workspace. Four synchronous commands activate an operator, assign a
 synthetic device, consolidate its audit trail, and complete provisioning.
 Capacity changes and security records remain isolated to the current visitor;
 no email, device integration, or background worker is invoked.
+
+All three frontend routes support light and dark themes. A portfolio or other
+external entry point can hand off the active preference with `?theme=light` or
+`?theme=dark`; a valid handoff is persisted in the browser under
+`returnops-theme`. Without a handoff, the frontend restores the saved value and
+then falls back to the operating-system preference.
 
 ## Common commands
 

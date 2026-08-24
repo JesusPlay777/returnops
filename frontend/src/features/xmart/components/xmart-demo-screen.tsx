@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { ThemeSwitch } from "@/components/theme-switch";
 import {
   advanceXmartDemo,
   resetXmartDemo,
@@ -425,6 +426,7 @@ export default function XmartDemoScreen() {
             onLocaleChange={setLocale}
             variant="customer"
           />
+          <ThemeSwitch locale={locale} variant="customer" />
         </div>
       </header>
 
