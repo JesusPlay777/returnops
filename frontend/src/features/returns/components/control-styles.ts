@@ -3,9 +3,9 @@ const workflowField =
 
 export const buttonStyles = {
   customerPrimary:
-    "inline-flex min-h-12 cursor-pointer items-center justify-center gap-[9px] rounded-[11px] border border-primary bg-primary px-5 text-[13px] font-[720] text-surface transition-[background,transform] duration-150 ease-[ease] enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-55 motion-reduce:transition-none",
+    "inline-flex min-h-12 cursor-pointer items-center justify-center gap-[9px] rounded-[11px] border border-primary bg-primary px-5 text-[13px] font-[720] text-on-primary transition-[background,transform] duration-150 ease-[ease] enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-55 motion-reduce:transition-none",
   customerPrimaryCompact:
-    "inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-[9px] rounded-[11px] border border-primary bg-primary px-5 text-[13px] font-[720] text-surface transition-[background,transform] duration-150 ease-[ease] enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-55 motion-reduce:transition-none",
+    "inline-flex min-h-[42px] cursor-pointer items-center justify-center gap-[9px] rounded-[11px] border border-primary bg-primary px-5 text-[13px] font-[720] text-on-primary transition-[background,transform] duration-150 ease-[ease] enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-55 motion-reduce:transition-none",
   customerSecondary:
     "min-h-10 cursor-pointer rounded-[9px] border border-border bg-surface px-[14px] text-[12px] font-[680] text-ink",
   customerPagination:
@@ -13,7 +13,7 @@ export const buttonStyles = {
   customerIcon:
     "grid size-10 flex-none cursor-pointer place-items-center rounded-full border border-border bg-surface p-0 text-[19px] font-normal text-ink",
   workflowPrimary:
-    "min-h-11 cursor-pointer whitespace-nowrap rounded-[10px] border border-primary bg-primary px-[17px] text-[12px] font-[720] text-surface disabled:cursor-not-allowed disabled:opacity-45",
+    "min-h-11 cursor-pointer whitespace-nowrap rounded-[10px] border border-primary bg-primary px-[17px] text-[12px] font-[720] text-on-primary disabled:cursor-not-allowed disabled:opacity-45",
   workflowSecondary:
     "min-h-[42px] cursor-pointer rounded-[9px] border border-border bg-surface px-4 text-[11px] font-[680]",
   workflowFooterSecondary:
@@ -31,11 +31,11 @@ export const buttonStyles = {
   operationsReviewClose:
     "grid size-[42px] flex-none cursor-pointer place-items-center rounded-full border border-border bg-surface text-[24px] text-ink focus-visible:[outline:3px_solid_rgb(15_118_110_/_18%)] focus-visible:outline-offset-2",
   operationsReviewPrimary:
-    "mt-[14px] min-h-11 w-full cursor-pointer rounded-lg border-0 bg-primary text-[10px] font-[760] text-surface focus-visible:[outline:3px_solid_rgb(15_118_110_/_18%)] focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-45",
+    "mt-[14px] min-h-11 w-full cursor-pointer rounded-lg border-0 bg-primary text-[10px] font-[760] text-on-primary focus-visible:[outline:3px_solid_rgb(15_118_110_/_18%)] focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-45",
   operationsConfirmationSecondary:
     "min-h-[38px] cursor-pointer rounded-[7px] border border-border bg-surface text-[8px] font-[730] focus-visible:[outline:3px_solid_rgb(15_118_110_/_18%)] focus-visible:outline-offset-2 disabled:cursor-wait disabled:opacity-55",
   operationsConfirmationPrimary:
-    "min-h-[38px] cursor-pointer rounded-[7px] border border-primary bg-primary text-[8px] font-[730] text-surface focus-visible:[outline:3px_solid_rgb(15_118_110_/_18%)] focus-visible:outline-offset-2 disabled:cursor-wait disabled:opacity-55",
+    "min-h-[38px] cursor-pointer rounded-[7px] border border-primary bg-primary text-[8px] font-[730] text-on-primary focus-visible:[outline:3px_solid_rgb(15_118_110_/_18%)] focus-visible:outline-offset-2 disabled:cursor-wait disabled:opacity-55",
 } as const;
 
 export const fieldStyles = {

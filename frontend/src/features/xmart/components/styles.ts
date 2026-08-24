@@ -1,6 +1,6 @@
 export const xmartControlStyles = {
   primary:
-    "inline-flex min-h-12 cursor-pointer items-center justify-center gap-3 rounded-full border border-primary bg-primary px-6 text-[13px] font-[750] text-surface transition-[transform,background] duration-150 enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-50 motion-reduce:transition-none",
+    "inline-flex min-h-12 cursor-pointer items-center justify-center gap-3 rounded-full border border-primary bg-primary px-6 text-[13px] font-[750] text-on-primary transition-[transform,background] duration-150 enabled:hover:-translate-y-px enabled:hover:bg-primary-dark disabled:cursor-wait disabled:opacity-50 motion-reduce:transition-none",
   secondary:
     "inline-flex min-h-11 cursor-pointer items-center justify-center rounded-full border border-border bg-surface px-5 text-[12px] font-[720] text-ink transition-colors hover:border-primary hover:text-primary-dark disabled:cursor-wait disabled:opacity-50",
 } as const;
@@ -18,9 +18,9 @@ export const xmartSurfaceStyles = {
     "grid grid-cols-[minmax(0,1.12fr)_minmax(320px,0.68fr)] items-center gap-[clamp(42px,8vw,104px)] py-[clamp(64px,9vw,108px)] max-[860px]:grid-cols-1 max-[620px]:py-14",
   heroActions: "mt-8 flex flex-wrap items-center gap-3",
   scenarioCard:
-    "relative overflow-hidden rounded-[28px] border border-[#bfd8d3] bg-primary p-[clamp(26px,4vw,38px)] text-surface shadow-[0_28px_80px_rgb(15_118_110_/_20%)]",
+    "relative overflow-hidden rounded-[28px] border border-primary/45 bg-primary p-[clamp(26px,4vw,38px)] text-on-primary shadow-[0_28px_80px_rgb(15_118_110_/_20%)]",
   scenarioGrid:
-    "relative z-10 mt-7 grid gap-px overflow-hidden rounded-2xl bg-white/20",
+    "relative z-10 mt-7 grid gap-px overflow-hidden rounded-2xl bg-on-primary/20",
   scenarioRow:
     "grid grid-cols-[96px_minmax(0,1fr)] gap-4 bg-primary-dark/60 p-4 max-[420px]:grid-cols-1 max-[420px]:gap-1",
   section:
@@ -38,7 +38,7 @@ export const xmartSurfaceStyles = {
   capacityGrid:
     "mt-7 grid grid-cols-3 gap-3 max-[680px]:grid-cols-1",
   capacityCard:
-    "rounded-2xl border border-border bg-[#fbfcfb] p-5",
+    "rounded-2xl border border-border bg-surface-subtle p-5",
   meterTrack:
     "mt-5 h-2 overflow-hidden rounded-full bg-primary-soft",
   meterFill:
@@ -48,7 +48,7 @@ export const xmartSurfaceStyles = {
     "rounded-full border border-primary/20 bg-primary-soft px-3 py-2 text-[10px] font-[720] text-primary-dark",
   provisioningStack: "mt-7 grid gap-3",
   record:
-    "rounded-2xl border border-border bg-[#fbfcfb] p-5",
+    "rounded-2xl border border-border bg-surface-subtle p-5",
   recordHeader: "flex items-start justify-between gap-4",
   recordGrid:
     "mt-5 grid grid-cols-2 gap-x-5 gap-y-4 max-[480px]:grid-cols-1",
@@ -57,7 +57,7 @@ export const xmartSurfaceStyles = {
   auditList:
     "mt-7 grid list-none grid-cols-2 gap-3 max-[760px]:grid-cols-1",
   auditEvent:
-    "grid grid-cols-[36px_minmax(0,1fr)] gap-4 rounded-2xl border border-border bg-[#fbfcfb] p-5",
+    "grid grid-cols-[36px_minmax(0,1fr)] gap-4 rounded-2xl border border-border bg-surface-subtle p-5",
   auditSequence:
     "grid size-9 place-items-center rounded-full bg-primary-soft text-[10px] font-[780] text-primary-dark",
   stateMessage:
@@ -68,7 +68,7 @@ export const xmartSurfaceStyles = {
 
 export const xmartPatternStyles = {
   brand:
-    "flex items-center gap-3 no-underline [&>span:first-child]:grid [&>span:first-child]:size-9 [&>span:first-child]:place-items-center [&>span:first-child]:rounded-xl [&>span:first-child]:bg-ink [&>span:first-child]:text-[11px] [&>span:first-child]:font-extrabold [&>span:first-child]:text-surface [&>strong]:text-[14px] [&>strong]:font-[750]",
+    "flex items-center gap-3 no-underline [&>span:first-child]:grid [&>span:first-child]:size-9 [&>span:first-child]:place-items-center [&>span:first-child]:rounded-xl [&>span:first-child]:bg-primary [&>span:first-child]:text-[11px] [&>span:first-child]:font-extrabold [&>span:first-child]:text-on-primary [&>strong]:text-[14px] [&>strong]:font-[750]",
   eyebrow:
     "text-[11px] font-[780] tracking-[0.13em] text-primary-dark uppercase",
   heroTitle:
@@ -78,12 +78,12 @@ export const xmartPatternStyles = {
   architectureNote:
     "inline-flex items-center gap-2 text-[11px] font-[720] text-primary-dark before:size-2 before:rounded-full before:bg-success",
   scenarioLabel:
-    "text-[10px] font-[760] tracking-[0.12em] text-white/70 uppercase",
+    "text-[10px] font-[760] tracking-[0.12em] text-on-primary/70 uppercase",
   scenarioTitle:
     "mt-3 text-[28px] leading-[1.15] font-[680] tracking-[-0.03em]",
-  scenarioMeta: "mt-3 text-[12px] leading-[1.6] text-white/75",
+  scenarioMeta: "mt-3 text-[12px] leading-[1.6] text-on-primary/75",
   scenarioRow:
-    "[&>dt]:text-[9px] [&>dt]:tracking-[0.1em] [&>dt]:text-white/60 [&>dt]:uppercase [&>dd]:min-w-0 [&>dd]:overflow-wrap-anywhere [&>dd]:text-[12px] [&>dd]:font-[680]",
+    "[&>dt]:text-[9px] [&>dt]:tracking-[0.1em] [&>dt]:text-on-primary/60 [&>dt]:uppercase [&>dd]:min-w-0 [&>dd]:overflow-wrap-anywhere [&>dd]:text-[12px] [&>dd]:font-[680]",
   sectionTitle:
     "mt-2 text-[clamp(28px,4vw,44px)] leading-[1.05] font-[680] tracking-[-0.04em]",
   sectionCopy:

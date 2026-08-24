@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+import { themeInitializationScript } from "@/lib/theme";
 import { DemoSessionProvider } from "@/providers/demo-session-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -21,9 +23,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={inter.variable}>
+    <html
+      lang="en"
+      className={inter.variable}
+      data-theme="light"
+      suppressHydrationWarning
+    >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{ __html: themeInitializationScript }}
+        />
+      </head>
       <body>
-        <DemoSessionProvider>{children}</DemoSessionProvider>
+        <ThemeProvider>
+          <DemoSessionProvider>{children}</DemoSessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

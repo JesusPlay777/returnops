@@ -15,6 +15,7 @@ import {
   listCustomerReturns,
   retrieveCustomerReturn,
 } from "@/features/returns/api";
+import { ThemeSwitch } from "@/components/theme-switch";
 import CustomerReturnWorkflow from "@/features/returns/components/customer-return-workflow";
 import { buttonStyles, fieldStyles } from "@/features/returns/components/control-styles";
 import { DemoBadge } from "@/features/returns/components/demo-badge";
@@ -417,6 +418,7 @@ export default function CustomerReturnsScreen() {
             onLocaleChange={setLocale}
             variant="customer"
           />
+          <ThemeSwitch locale={locale} variant="customer" />
         </div>
       </header>
 

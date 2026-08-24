@@ -28,6 +28,8 @@ The visual implementation is deliberately split by responsibility:
   control, surface, and pattern split within the independent Energybil feature.
 - `src/features/xmart/components/styles.ts` applies that split to capacity,
   provisioning records, workflow stages, and audit events in the Xmart feature.
+- `src/lib/theme.ts` defines the light/dark handoff and initialization contract;
+  `src/providers/theme-provider.tsx` owns the synchronized browser preference.
 - Small, self-contained primitives such as badges and the loading spinner may
   keep a complete static class string beside their markup.
 
@@ -66,6 +68,8 @@ The production interface must preserve all of the following:
 - One descriptive page title, one visible primary heading per role view, and a
   `main` landmark reachable through a localized skip link.
 - A synchronized `html[lang]` value when the visitor switches languages.
+- A synchronized `html[data-theme]` value, with `?theme=light|dark` taking
+  precedence over the saved preference and operating-system scheme.
 - Native labels for form controls; icon-only buttons require localized
   accessible names.
 - Toggle groups and filters expose selection through `aria-pressed`, not color
